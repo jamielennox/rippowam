@@ -1,0 +1,7 @@
+---
+repo_urls:
+  - http://download.devel.redhat.com/brewroot/work/tasks/8989/9508989/ipa-python-4.2.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/work/tasks/8989/9508989/ipa-client-4.2.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/work/tasks/8989/9508989/ipa-admintools-4.2.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/work/tasks/8989/9508989/ipa-server-4.2.0-2.el7.x86_64.rpm
+    # - http://download.eng.bos.redhat.com/nightly/RHEL-7.2-20150713.n.3/compose/Server/x86_64/os/Packages/python-cryptography-0.8.2-1.el7.x86_64.rpm

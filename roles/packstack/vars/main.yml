@@ -1,0 +1,3 @@
+---
+openstack_api_versions:
+  \"identity\": 3

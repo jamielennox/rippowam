@@ -1,0 +1,4 @@
+[ipsilon]
+name=hacked ipsilon
+baseurl=file:///ipsilonrepo
+gpgcheck=0

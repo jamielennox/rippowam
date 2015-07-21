@@ -1,0 +1,20 @@
+---
+- name: restart nova-api
+  sudo: yes
+  service: name=openstack-nova-api state=restarted
+
+- name: restart glance-api
+  sudo: yes
+  service: name=openstack-glance-api state=restarted
+
+- name: restart glance-registry
+  sudo: yes
+  service: name=openstack-glance-registry state=restarted
+
+- name: restart cinder-api
+  sudo: yes
+  service: name=openstack-cinder-api state=restarted
+
+- name: restart httpd
+  sudo: yes
+  service: name=httpd state=restarted

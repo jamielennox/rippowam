@@ -1,0 +1,18 @@
+---
+- name: Install IPA Client packages
+  yum: name=ipa-client,ipa-admintools,python-memcached
+       state=present
+
+- name: Setup resolv.conf
+  template: src=resolv.conf.j2
+            dest=/etc/resolv.conf
+
+- name: Register IPA Client
+  command: >
+    ipa-client-install -U
+    --principal admin@{{ ipa_realm }}
+    --password {{ ipa_admin_password }}
+    --domain {{ ipa_domain }}
+    --force --force-ntpd
+  args:
+    creates: /etc/ipa/ca.crt

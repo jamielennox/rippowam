@@ -1,0 +1,4 @@
+[ipa]
+name=hacked ipa
+baseurl=file:///iparepo
+gpgcheck=0

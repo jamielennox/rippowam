@@ -1,0 +1,28 @@
+- hosts: ipa
+  roles:
+    - common
+    - ipaserver
+    - ipsilonserver
+  vars:
+    hostname: ipa.fedtest.org
+    ipa_realm: FEDTEST.ORG
+    ipa_admin_password: password
+    ipa_dns_forwarder: 192.168.100.1
+    nightly_version: 20150717.n.4
+
+- hosts: openstack
+  roles:
+    - common
+    - ipaclient
+    - packstack
+  vars:
+    hostname: openstack.fedtest.org
+    nightly_version: 20150717.n.4
+
+    dns_search: fedtest.org
+    dns_nameservers:
+      - 192.168.100.163
+
+    ipa_realm: FEDTEST.ORG
+    ipa_domain: fedtest.org
+    ipa_admin_password: password

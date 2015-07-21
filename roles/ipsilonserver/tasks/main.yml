@@ -1,0 +1,44 @@
+---
+- name: create /ipsilonrepo
+  file: dest=/ipsilonrepo
+        state=directory
+
+- name: install createrepo
+  yum: name=createrepo
+
+- name: download hacked sssd
+  get_url: url="{{ item }}"
+           dest="/ipsilonrepo/{{ item | basename }}"
+  with_items:
+    "{{ repo_urls }}"
+  register: createrepo
+
+- name: createrepo file
+  command: createrepo /ipsilonrepo
+  when: createrepo.changed
+
+- name: add ipsilon repo to platform
+  copy: dest=/etc/yum.repos.d/ipsilon.repo
+        src=ipsilon.repo
+
+- name: Install Ipsilon Packages
+  yum: name=ipsilon,ipsilon-saml2,ipsilon-authgssapi,ipsilon-tools-ipa,ipsilon-infosssd
+       state=present
+
+- name: Install ipsilon server
+  command: ipsilon-server-install --ipa=yes --gssapi=yes --form=yes --info-sssd=yes --admin-user=admin
+  args:
+    creates: /etc/ipsilon/idp/idp.conf
+  notify: restart httpd
+
+- name: Use NSS rather than SSL
+  replace: regexp=SSLRequireSSL
+           replace=NSSRequireSSL
+           dest=/etc/httpd/conf.d/ipsilon-idp.conf
+  notify: restart httpd
+
+- name: Remove SSL conf file
+  file: path=/etc/httpd/conf.d/ssl.conf
+        state=absent
+  notify: restart httpd
+

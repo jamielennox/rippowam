@@ -1,0 +1,31 @@
+---
+repo_urls:
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libipa_hbac-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libipa_hbac-devel-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libsss_idmap-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libsss_idmap-devel-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libsss_nss_idmap-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libsss_nss_idmap-devel-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libsss_simpleifp-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/libsss_simpleifp-devel-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/python-libipa_hbac-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/python-libsss_nss_idmap-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/python-sss-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/python-sss-murmur-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-ad-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-client-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-common-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-common-pac-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-dbus-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-debuginfo-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-ipa-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-krb5-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-krb5-common-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-ldap-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-libwbclient-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-libwbclient-devel-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-proxy-1.13.0-2.el7.x86_64.rpm
+  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/2.el7/x86_64/sssd-tools-1.13.0-2.el7.x86_64.rpm
+
+  - http://download.eng.bos.redhat.com/brewroot/packages/ipsilon/1.0.0/4.el7/noarch/ipsilon-infosssd-1.0.0-4.el7.noarch.rpm

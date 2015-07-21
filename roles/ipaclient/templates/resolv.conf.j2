@@ -1,0 +1,6 @@
+## handled by ansible
+search {{ dns_search }}
+
+{% for n in dns_nameservers %}
+nameserver {{ n }}
+{% endfor %}

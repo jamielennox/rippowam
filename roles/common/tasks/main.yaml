@@ -1,0 +1,44 @@
+---
+- name: Install nightly repo
+  template:
+    src: rhel-nightly.repo.j2
+    dest: /etc/yum.repos.d/rhel-nightly.repo
+
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: Install packages
+  yum: name={{ item }}
+  with_items:
+      - rng-tools
+
+- name: disable selinux
+  selinux: state=disabled
+
+- name: patch rngd
+  copy: src=rngd.service dest=/etc/systemd/system/rngd.service
+  register: rngd
+
+- name: reload systemd units
+  command: systemctl daemon-reload
+  when: rngd.changed
+
+- name: Start the rngd service
+  service: name=rngd enabled=yes state=started
+
+- name: Set up authorized_keys for the deploy user
+  authorized_key: user="{{ ansible_user_id }}"
+                  key="{{ item }}"
+  with_file:
+    - public_keys/work.pub
+
+- name: tty-less sudo
+  sudo: yes
+  lineinfile: dest=/etc/sudoers
+              state=absent
+              regexp='^Defaults(\s+)requiretty(\s*)$'
+              validate='visudo -cf %s'
+
+- name: Set server hostname
+  sudo: yes
+  hostname: name={{ hostname }}

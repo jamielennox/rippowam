@@ -1,0 +1,216 @@
+---
+- name: Disable NetworkManager service
+  service: name=NetworkManager
+           enabled=no
+           state=stopped
+
+- name: Enable network service
+  service: name=network
+           enabled=yes
+           state=started
+
+- name: Add dns in network scripts
+  lineinfile: line='DNS1="{{ hostvars.ipa.ansible_default_ipv4.address }}"'
+              state=present
+              regexp="^DNS"
+              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
+  register: dns1
+
+- name: disable dns in network scripts
+  lineinfile: line='PEERDNS="no"'
+              state=present
+              regexp="^PEERDNS="
+              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
+  register: dns2
+
+- name: Restart networking
+  service: name=network
+           state=restarted
+  when: dns1.changed or dns2.changed
+
+- name: Install httpd for conf directories
+  yum: name=httpd
+       state=installed
+
+- name: Start certmonger
+  service: name=certmonger
+           enabled=true
+           state=started
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+# not sure why i have to use --force in the service-add here. I get the error
+# ipa: ERROR: Host does not have corresponding DNS A/AAAA record
+# otherwise
+- name: Add HTTP/openstack service
+  shell: ipa service-show HTTP/{{ hostname }}@{{ ipa_realm }} 2>/dev/null || ipa service-add --force HTTP/{{ hostname }}@{{ ipa_realm }}
+  register: addservice
+  changed_when: "'Added service' in addservice.stdout"
+
+- name: Get HTTP certificate
+  command: >
+    ipa-getcert request
+    -f {{ ssl_cert }}
+    -k {{ ssl_key }}
+    -D "{{ hostname }}"
+    -K HTTP/{{ hostname }}
+  args:
+    creates: "{{ ssl_key }}"
+
+- name: kdestroy
+  command: kdestroy
+  changed_when: false
+
+- name: Install packstack repos
+  register: packstackrepo
+  copy: src=RH7-RHOS-7.0.repo
+        dest=/etc/yum.repos.d/RH7-RHOS-7.0.repo
+
+- name: Install packstack dependencies
+  yum: name=git,openstack-puppet-modules state=installed
+
+#- name: Install packstack
+#  yum: name=openstack-packstack
+#       state=present
+#       update_cache=yes
+
+# Install packstack from git because of https://bugs.launchpad.net/packstack/+bug/1475170
+- name: Clone packstack
+  git: repo=https://github.com/stackforge/packstack.git
+       dest="{{ packstack_dir }}"
+       accept_hostkey=True
+  register: clonepackstack
+
+- name: Install packstack
+  shell: python setup.py develop
+  args:
+    chdir: "{{ packstack_dir }}"
+  when: clonepackstack.changed
+
+- name: Symlink packstack puppet modules
+  file: src="{{ packstack_dir }}/packstack/puppet/modules/packstack"
+        dest=/usr/share/openstack-puppet/modules/packstack
+        state=link
+
+- name: Copy answer file
+  template: src=answers.txt.j2
+            dest=/answers.txt
+  register: answers
+
+- name: Run packstack
+  command: "{{ packstack_dir }}/bin/packstack --answer-file /answers.txt"
+  when: answers.changed
+
+- name: nova v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/nova/nova.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: nova
+    password: "{{ nova_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart nova-api
+
+- name: glance-api v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/glance/glance-api.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: glance
+    password: "{{ glance_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart glance-api
+
+- name: glance-registry v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/glance/glance-registry.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: glance
+    password: "{{ glance_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart glance-registry
+
+- name: cinder v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/cinder/cinder.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: cinder
+    password: "{{ cinder_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart cinder-api
+
+- name: horizon v3 authentication
+  lineinfile: dest=/etc/openstack-dashboard/local_settings
+              line="OPENSTACK_API_VERSIONS = {{ openstack_api_versions | to_json }}"
+  notify:
+    - restart httpd
+
+- name: horizon keystone https
+  lineinfile: dest=/etc/openstack-dashboard/local_settings
+              line="OPENSTACK_KEYSTONE_URL = \"https://{{ hostname }}:5000/v3\""
+              regexp="^OPENSTACK_KEYSTONE_URL"
+
+- name: keystone SSL
+  lineinfile: dest=/etc/httpd/conf.d/{{ item[0] }}
+              line="{{ item[1] }}"
+              insertbefore="</VirtualHost>"
+  with_nested:
+    - [ 10-keystone_wsgi_main.conf,
+        10-keystone_wsgi_admin.conf ]
+    - [ "SSLEngine on",
+        "SSLCertificateFile \"{{ ssl_cert }}\"",
+        "SSLCertificateKeyFile \"{{ ssl_key }}\"",
+        "SSLCACertificateFile \"/etc/ipa/ca.crt\"" ]
+  notify: restart httpd
+
+- name: install epel
+  yum: name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+       state=installed
+
+- name: install pip
+  yum: name=python-pip
+       state=installed
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1245028
+- name: install eventlet 0.17.4
+  pip: name=eventlet
+       version=0.17.4
+       state=present
+
+- name: update keystone endpoints - public
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:5000/v2.0\" where url like \"http://%:5000/v2.0\";"
+  register: keystonesqlpublic
+  changed_when: '"0 rows affected" not in keystonesqlpublic.stdout'
+
+- name: update keystone endpoints - admin
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:35357/v2.0\" where url like \"http://%:35357/v2.0\";"
+  register: keystonesqladmin
+  changed_when: '"0 rows affected" not in keystonesqladmin.stdout'

@@ -1,0 +1,17 @@
+---
+cinder_password: cinder
+cinder_db_password: cinder
+
+glance_password: glance
+glance_db_password: glance
+
+admin_token: ADMIN
+keystone_db_password: keystone
+
+nova_password: nova
+nova_db_password: nova
+
+ssl_cert: /etc/httpd/conf/server.crt
+ssl_key: /etc/httpd/conf/server.key
+
+packstack_dir: /packstack
