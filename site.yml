@@ -1,16 +1,20 @@
 - hosts: ipa
+  sudo: yes
+  remote_user: "{{ cloud_user }}"
   roles:
     - common
     - ipaserver
     - ipsilonserver
   vars:
-    hostname: ipa.fedtest.org
-    ipa_realm: FEDTEST.ORG
-    ipa_admin_password: password
-    ipa_dns_forwarder: 192.168.100.1
+    hostname: "{{ ansible_fqdn }}"
+    #ipa_realm: Set By Inventory
+    ipa_admin_password: "{{ ipa_admin_user_password }}"
+    ipa_dns_forwarder:  "{{ ipa_forwarder }}"
     nightly_version: 20150717.n.4
 
 - hosts: openstack
+  sudo: yes
+  remote_user: "{{ cloud_user }}"
   roles:
     - common
     - ipaclient
@@ -19,10 +23,10 @@
     hostname: openstack.fedtest.org
     nightly_version: 20150717.n.4
 
-    dns_search: fedtest.org
+    dns_search: "{{ ipa_domain }}" 
     dns_nameservers:
-      - 192.168.100.163
+      - "{{ nameserver }}"
 
-    ipa_realm: FEDTEST.ORG
-    ipa_domain: fedtest.org
-    ipa_admin_password: password
+    #ipa_realm: Set By Inventory
+    #ipa_domain: Set By Inventory
+    ipa_admin_password: "{{ipa_admin_user_password }}"
