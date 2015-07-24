@@ -1,32 +1,34 @@
 ---
-- name: Disable NetworkManager service
-  service: name=NetworkManager
-           enabled=no
-           state=stopped
+#- name: Disable NetworkManager service
+#  service: name=NetworkManager
+#           enabled=no
+#           state=stopped
 
-- name: Enable network service
-  service: name=network
-           enabled=yes
-           state=started
+#- name: Enable network service
+#  service: name=network
+#           enabled=yes
+#           state=started
 
-- name: Add dns in network scripts
-  lineinfile: line='DNS1="{{ hostvars.ipa.ansible_default_ipv4.address }}"'
-              state=present
-              regexp="^DNS"
-              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
-  register: dns1
+#- name: Add dns in network scripts
+#  lineinfile: line='DNS1="{{ hostvars.ipa.ansible_default_ipv4.address }}"'
+#              state=present
+#              regexp="^DNS"
+#              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
+#  register: dns1
 
-- name: disable dns in network scripts
-  lineinfile: line='PEERDNS="no"'
-              state=present
-              regexp="^PEERDNS="
-              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
-  register: dns2
+#- name: disable dns in network scripts
+#  lineinfile: line='PEERDNS="no"'
+#              state=present
+#              regexp="^PEERDNS="
+#              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
+#  register: dns2
 
-- name: Restart networking
-  service: name=network
-           state=restarted
-  when: dns1.changed or dns2.changed
+#- name: Restart networking
+#  service: name=network
+#           state=restarted
+#  when: dns1.changed or dns2.changed
+
+
 
 - name: Install httpd for conf directories
   yum: name=httpd

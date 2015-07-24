@@ -26,7 +26,7 @@
  #        src=ipa.repo
  #
 - name: install ipa packages
-  yum: name=bind-dyndb-ldap,bind-pkcs11,bind-pkcs11-utils,ipa-server
+  yum: name=bind-dyndb-ldap,bind-pkcs11,bind-pkcs11-utils,ipa-server,firewalld
        state=present
 
 - name: install ipa

@@ -10,7 +10,10 @@
     #ipa_realm: Set By Inventory
     ipa_admin_password: "{{ ipa_admin_user_password }}"
     ipa_dns_forwarder:  "{{ ipa_forwarder }}"
+    #nightly_version: 20150722.n.0
     nightly_version: 20150717.n.4
+    #nightly_version: 20150721.n.0
+
 
 - hosts: openstack
   sudo: yes
@@ -20,7 +23,7 @@
     - ipaclient
     - packstack
   vars:
-    hostname: openstack.fedtest.org
+    hostname: "{{ ansible_fqdn }}"
     nightly_version: 20150717.n.4
 
     dns_search: "{{ ipa_domain }}" 
