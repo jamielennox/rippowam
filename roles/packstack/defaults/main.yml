@@ -11,6 +11,9 @@ keystone_db_password: keystone
 nova_password: nova
 nova_db_password: nova
 
+keystone_admin_password: password
+keystone_demo_password: password
+
 ssl_cert: /etc/httpd/conf/server.crt
 ssl_key: /etc/httpd/conf/server.key
 
