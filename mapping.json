@@ -1,0 +1,34 @@
+[
+    {
+        "local": [
+            {
+                "user": {
+                    "name": "{0}"
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "MELLON_NAME_ID"
+            }
+        ]
+    },
+    {
+        "local": [
+            {
+                "group": {
+                    "name":  "ipsilon-engineering",
+                    "domain": {"id": "default"}
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "MELLON_groups",
+                "any_one_of": [
+                    "engineering"
+                ]
+            }
+        ]
+    }
+]

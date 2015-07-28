@@ -180,7 +180,7 @@
 
 - name: keystone SSL
   lineinfile: dest=/etc/httpd/conf.d/{{ item[0] }}
-              line="{{ item[1] }}"
+              line="  {{ item[1] }}"
               insertbefore="</VirtualHost>"
   with_nested:
     - [ 10-keystone_wsgi_main.conf,
@@ -214,3 +214,25 @@
   command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:35357/v2.0\" where url like \"http://%:35357/v2.0\";"
   register: keystonesqladmin
   changed_when: '"0 rows affected" not in keystonesqladmin.stdout'
+
+- name: remove nova v2 overrides
+  ini_file: dest=/usr/share/nova/nova-dist.conf
+            section=keystone_authtoken
+            state=absent
+
+- name: install adminrc file
+  template: src=adminrc.j2
+            dest=~/adminrc
+
+- name: install demorc file
+  template: src=demorc.j2
+            dest=~/demorc
+
+- name: add test file to federation
+  copy: src=test
+        dest=/var/www/cgi-bin/keystone/test
+
+- name: add sample line to keystone
+  lineinfile: dest=/etc/httpd/conf.d/10-keystone_wsgi_main.conf
+              line='#  WSGIScriptAlias "/v3/auth/OS-FEDERATION/websso/saml2" "/var/www/cgi-bin/keystone/test"'
+              insertbefore="WSGIScriptAlias"
