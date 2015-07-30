@@ -10,7 +10,7 @@
 
 
 - name: hack off broken socket
-  command: rm /dev/log
+  command: rm -f /dev/log
 
 - name: replace syslog socket with symlink
   command:  ln -s  /run/systemd/journal/dev-log /dev/log
@@ -21,9 +21,10 @@
       - rng-tools
       - firewalld
 
-
 - name: Add second ethernet interface
   command: nmcli connection  add type ethernet ifname eth1  con-name ethernet-eth1
+  when: ansible_eth1.ipv4 is not defined
+
 
 - name: enable firewalld
   command: systemctl enable firewalld.service
