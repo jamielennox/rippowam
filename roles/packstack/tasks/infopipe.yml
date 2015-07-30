@@ -1,0 +1,21 @@
+---
+- name: install sssd dbus
+  yum: name=sssd-dbus state=installed
+
+
+- name: Infopipe for SSSD
+  ini_file: dest=/etc/sssd/sssd.conf
+            section=sssd
+            option=services
+            value="nss, sudo, pam, ssh, ifp"
+
+- name: Infopipe users
+  ini_file: dest=/etc/sssd/sssd.conf
+            section=ifp
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    allowed_uids: "apache,root"
+    user_attributes: "+givenname,+sn,+ui"
+  notify:
+  - restart sssd

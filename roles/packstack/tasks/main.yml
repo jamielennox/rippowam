@@ -238,3 +238,5 @@
   lineinfile: dest=/etc/httpd/conf.d/10-keystone_wsgi_main.conf
               line='#  WSGIScriptAlias "/v3/auth/OS-FEDERATION/websso/saml2" "/var/www/cgi-bin/keystone/test"'
               insertbefore="WSGIScriptAlias"
+
+- include: infopipe.yml
