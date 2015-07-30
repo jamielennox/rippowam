@@ -240,3 +240,4 @@
               insertbefore="WSGIScriptAlias"
 
 - include: infopipe.yml
+- include: fed_sssd.yml

@@ -1,0 +1,64 @@
+---
+- name: copy rules file
+  copy:
+    src=roles/packstack/files/mapping_sssd.json
+    dest=/mapping_sssd.json
+- name: list groups
+  command:  openstack group list -c Name -f csv
+  environment: os_env
+  register: os_groups
+  
+- name: group
+  command: openstack group create admins
+  environment: os_env
+  when: '"\"admins\"" not in os_groups.stdout_lines'
+  
+- name: ipausers group
+  command: openstack group create ipausers
+  environment: os_env
+  when: '"\"ipausers\"" not in os_groups.stdout_lines'
+
+- name: role on demo project
+  command: openstack role add  --project demo --group ipausers _member_
+  environment: os_env
+
+- name: list idps
+  command: openstack identity provider list -c ID -f csv
+  environment: os_env
+  register: os_idps
+
+- name: identity provider
+  command: openstack identity provider create sssd
+  environment: os_env
+  when: '"\"sssd\"" not in os_idps.stdout_lines'
+
+- name: list mappings
+  command: openstack mapping list -c ID -f csv
+  environment: os_env
+  register: os_mappings
+
+- name: create mapping 
+  command: openstack mapping create --rules /mapping_sssd.json kerberos_mapping
+  environment: os_env
+  when: ' "\"kerberos_mapping\"" not in os_mappings.stdout_lines'
+
+
+- name: list protocols
+  command: openstack federation protocol list  --identity-provider  sssd -c id
+    -f csv
+  environment: os_env
+  register: os_sssd_protocols
+
+
+- name: federation protocol create
+  command: openstack federation protocol create --identity-provider sssd
+    --mapping kerberos_mapping kerberos
+  environment: os_env
+  when: ' "\"kerberos\"" not in os_sssd_protocols.stdout_lines'
+
+
+#    - name: identity provider set remote id
+#      command: openstack identity provider set --remote-id SSSD sssd
+
+
+
