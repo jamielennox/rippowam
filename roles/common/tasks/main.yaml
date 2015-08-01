@@ -26,6 +26,11 @@
   when: ansible_eth1.ipv4 is not defined
 
 
+#- name: update facts
+#  setup:
+#  when: ansible_eth1.ipv4 is not defined
+
+
 - name: enable firewalld
   command: systemctl enable firewalld.service
 

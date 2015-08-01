@@ -1,34 +1,4 @@
 ---
-#- name: Disable NetworkManager service
-#  service: name=NetworkManager
-#           enabled=no
-#           state=stopped
-
-#- name: Enable network service
-#  service: name=network
-#           enabled=yes
-#           state=started
-
-#- name: Add dns in network scripts
-#  lineinfile: line='DNS1="{{ hostvars.ipa.ansible_default_ipv4.address }}"'
-#              state=present
-#              regexp="^DNS"
-#              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
-#  register: dns1
-
-#- name: disable dns in network scripts
-#  lineinfile: line='PEERDNS="no"'
-#              state=present
-#              regexp="^PEERDNS="
-#              dest=/etc/sysconfig/network-scripts/ifcfg-{{ ansible_default_ipv4.interface }}
-#  register: dns2
-
-#- name: Restart networking
-#  service: name=network
-#           state=restarted
-#  when: dns1.changed or dns2.changed
-
-
 
 - name: Install httpd for conf directories
   yum: name=httpd
@@ -65,45 +35,9 @@
   command: kdestroy
   changed_when: false
 
-- name: Install packstack repos
-  register: packstackrepo
-  copy: src=RH7-RHOS-7.0.repo
-        dest=/etc/yum.repos.d/RH7-RHOS-7.0.repo
 
-- name: Install packstack dependencies
-  yum: name=git,openstack-puppet-modules state=installed
+- include: packstack.yml
 
-#- name: Install packstack
-#  yum: name=openstack-packstack
-#       state=present
-#       update_cache=yes
-
-# Install packstack from git because of https://bugs.launchpad.net/packstack/+bug/1475170
-- name: Clone packstack
-  git: repo=https://github.com/stackforge/packstack.git
-       dest="{{ packstack_dir }}"
-       accept_hostkey=True
-  register: clonepackstack
-
-- name: Install packstack
-  shell: python setup.py develop
-  args:
-    chdir: "{{ packstack_dir }}"
-  when: clonepackstack.changed
-
-- name: Symlink packstack puppet modules
-  file: src="{{ packstack_dir }}/packstack/puppet/modules/packstack"
-        dest=/usr/share/openstack-puppet/modules/packstack
-        state=link
-
-- name: Copy answer file
-  template: src=answers.txt.j2
-            dest=/answers.txt
-  register: answers
-
-- name: Run packstack
-  command: "{{ packstack_dir }}/bin/packstack --answer-file /answers.txt"
-  when: answers.changed
 
 - name: nova v3 authentication
   ini_file: section=keystone_authtoken
@@ -120,6 +54,7 @@
     project_domain_id: default
   notify:
     - restart nova-api
+
 
 - name: glance-api v3 authentication
   ini_file: section=keystone_authtoken
@@ -240,4 +175,9 @@
               insertbefore="WSGIScriptAlias"
 
 - include: infopipe.yml
+
+- name: Force restart HTTPD
+  command: systemctl restart httpd.service
+
 - include: fed_sssd.yml
+

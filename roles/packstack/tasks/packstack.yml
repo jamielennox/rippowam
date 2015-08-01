@@ -1,0 +1,41 @@
+---
+- name: Install packstack repos
+  register: packstackrepo
+  copy: src=RH7-RHOS-7.0.repo
+        dest=/etc/yum.repos.d/RH7-RHOS-7.0.repo
+
+- name: Install packstack dependencies
+  yum: name=git,openstack-puppet-modules state=installed
+
+#- name: Install packstack
+#  yum: name=openstack-packstack
+#       state=present
+#       update_cache=yes
+
+# Install packstack from git because of https://bugs.launchpad.net/packstack/+bug/1475170
+- name: Clone packstack
+  git: repo=https://github.com/stackforge/packstack.git
+       dest="{{ packstack_dir }}"
+       accept_hostkey=True
+  register: clonepackstack
+
+- name: Install packstack
+  shell: python setup.py develop
+  args:
+    chdir: "{{ packstack_dir }}"
+  when: clonepackstack.changed
+
+- name: Symlink packstack puppet modules
+  file: src="{{ packstack_dir }}/packstack/puppet/modules/packstack"
+        dest=/usr/share/openstack-puppet/modules/packstack
+        state=link
+
+- name: Copy answer file
+  template: src=answers.txt.j2
+            dest=/answers.txt
+  register: answers
+
+- name: Run packstack
+  command: "{{ packstack_dir }}/bin/packstack --answer-file /answers.txt"
+  when: answers.changed
+

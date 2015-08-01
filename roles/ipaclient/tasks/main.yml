@@ -13,6 +13,6 @@
     --principal admin@{{ ipa_realm }}
     --password {{ ipa_admin_password }}
     --domain {{ ipa_domain }}
-    --force --force-ntpd
+    --force --force-ntpd --force-join
   args:
     creates: /etc/ipa/ca.crt
