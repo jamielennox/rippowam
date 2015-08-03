@@ -1,4 +1,16 @@
 ---
+
+# Bug https://bugzilla.redhat.com/show_bug.cgi?id=1249267
+
+- name: fetch updated OSC
+  get_url: source=https://admiyo.fedorapeople.org/openstack/python-openstackclient/python-openstackclient-1.0.3-3.el7.noarch.rpm dest=/
+  register: osc_package
+
+
+- name: install updated OSC
+  command: yum -y localinstall /python-openstackclient-1.0.3-3.el7.noarch.rpm
+  when: osc_package.changed
+
 - name: copy rules file
   copy:
     src=roles/packstack/files/mapping_sssd.json
