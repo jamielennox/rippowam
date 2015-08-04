@@ -31,6 +31,21 @@
   args:
     creates: "{{ ssl_key }}"
 
+- name: Get Keytab
+  command:  >
+    ipa-getkeytab 
+    -s ipa.{{ ipa_domain }}
+    -k {{ keytab  }}
+    -p  HTTP/{{ hostname }}@{{ ipa_realm }}
+  args:
+    creates: "{{ keytab }}"
+
+- name: Set Keytab ownership
+  command: chown apache  "{{ keytab }}"
+
+- name: Set Keytab permissions
+  command: chmod 600 "{{ keytab }}"
+
 - name: kdestroy
   command: kdestroy
   changed_when: false

@@ -6,7 +6,6 @@
   get_url: url=https://admiyo.fedorapeople.org/openstack/python-openstackclient/python-openstackclient-1.0.3-3.el7.noarch.rpm dest=/
   register: osc_package
 
-
 - name: install updated OSC
   command: yum -y localinstall /python-openstackclient-1.0.3-3.el7.noarch.rpm
   when: osc_package.changed
@@ -68,9 +67,30 @@
   environment: os_env
   when: ' "\"kerberos\"" not in os_sssd_protocols.stdout_lines'
 
+- name:  Apache modules for SSSD
+  yum: name=mod_auth_gssapi,mod_lookup_identity
+       state=present
 
-#    - name: identity provider set remote id
-#      command: openstack identity provider set --remote-id SSSD sssd
+- name: keystone SSL
+  lineinfile: dest=/etc/httpd/conf.d/{{ item[0] }}
+              line="  {{ item[1] }}"
+              insertbefore="</VirtualHost>"
+  with_nested:
+    - [ 10-keystone_wsgi_main.conf,
+        10-keystone_wsgi_admin.conf ]
+    - [ "LoadModule auth_gssapi_module modules/mod_auth_gssapi.so",
+        "LoadModule lookup_identity_module modules/mod_lookup_identity.so",
+        "<location ~ \"kerberos\">",
+        "AuthType GSSAPI",
+        "AuthName GSSAPI-SSO",
+        "GssapiCredStore keytab:/etc/httpd/conf/openstack.keytab",
+        "GssapiLocalName on",
+        "GssapiSSLonly On",
+        "Require valid-user",
+        "LookupUserAttr mail REMOTE_USER_EMAIL ",
+        "LookupUserGroups REMOTE_USER_GROUPS \";\"",
+        "</location>" ]
+  notify: restart httpd
 
 
 
