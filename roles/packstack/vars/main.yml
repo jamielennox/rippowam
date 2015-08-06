@@ -4,7 +4,7 @@ openstack_api_versions:
 
 os_env:
   OS_AUTH_TYPE: v3password
-  OS_AUTH_URL: https://openstack.ayoung.test:5000/v3
+  OS_AUTH_URL: https://{{ ansible_fqdn }}:5000/v3
   OS_USERNAME: admin
   OS_PASSWORD: password
   OS_PROJECT_NAME: admin
