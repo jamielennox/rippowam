@@ -4,7 +4,7 @@
   roles:
     - common
     - ipaserver
-#    - ipsilonserver
+    - ipsilonserver
   vars:
     hostname: "{{ ansible_fqdn }}"
     #ipa_realm: Set By Inventory
