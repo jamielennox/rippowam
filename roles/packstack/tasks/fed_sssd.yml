@@ -18,12 +18,12 @@
   command:  openstack group list -c Name -f csv
   environment: os_env
   register: os_groups
-  
+
 - name: group
   command: openstack group create admins
   environment: os_env
   when: '"\"admins\"" not in os_groups.stdout_lines'
-  
+
 - name: ipausers group
   command: openstack group create ipausers
   environment: os_env
@@ -39,7 +39,7 @@
   register: os_idps
 
 - name: identity provider
-  command: openstack identity provider create --remote-id SSSD   sssd 
+  command: openstack identity provider create --remote-id SSSD   sssd
   environment: os_env
   when: '"\"sssd\"" not in os_idps.stdout_lines'
 
@@ -48,7 +48,7 @@
   environment: os_env
   register: os_mappings
 
-- name: create mapping 
+- name: create mapping
   command: openstack mapping create --rules /mapping_sssd.json kerberos_mapping
   environment: os_env
   when: ' "\"kerberos_mapping\"" not in os_mappings.stdout_lines'
@@ -93,4 +93,26 @@
   notify: restart httpd
 
 
+- name: Kerberos as Login mechanism
+  ini_file: dest=/etc/keystone/keystone.conf
+            section=auth
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+            methods: external,password,token,oauth1,kerberos
+            kerberos: keystone.auth.plugins.mapped.Mapped
+  notify: restart httpd
 
+
+
+- name: horizon WebSSO Configuration
+  lineinfile: dest=/etc/openstack-dashboard/local_settings
+              line="{{ item }}"
+  with_items:
+    - "WEBSSO_ENABLED = True "
+    - "WEBSSO_CHOICES = (('credentials', _('Keystone Credentials')),('kerberos', _('Kerberos')),)"
+    - "WEBSSO_INITIAL_CHOICE='kerberos'"
+    - "OPENSTACK_KEYSTONE_DEFAULT_ROLE='Member'"
+    - "OPENSTACK_HOST='{{ ansible_fqdn }}'"
+  notify:
+    - restart httpd
