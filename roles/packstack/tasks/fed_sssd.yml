@@ -12,11 +12,11 @@
 
 
 - name: fetch updated DOA
-  get_url: url=https://admiyo.fedorapeople.org/openstack/python-django-openstack-auth/python-django-openstack-auth-1.2.0-4.el7.src.rpm dest=/
+  get_url: url=https://admiyo.fedorapeople.org/openstack/python-django-openstack-auth/python-django-openstack-auth-1.2.0-4.el7.noarch.rpm dest=/
   register: doa_package
 
 - name: install updated DOA
-  command: yum -y localinstall /python-django-openstack-auth-1.2.0-4.el7.src.rpm
+  command: yum -y localinstall /python-django-openstack-auth-1.2.0-4.el7.noarch.rpm
   when: doa_package.changed
 
 

@@ -1,7 +1,8 @@
 ---
 
 - name: Install httpd for conf directories
-  yum: name=httpd
+  yum: name=httpd,firewalld
+
        state=installed
 
 - name: Start certmonger
@@ -41,7 +42,7 @@
     creates: "{{ keytab }}"
 
 - name: Set Keytab ownership
-  command: chown apache  "{{ keytab }}"
+  command: chown apache:apache  "{{ keytab }}"
 
 - name: Set Keytab permissions
   command: chmod 600 "{{ keytab }}"

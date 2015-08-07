@@ -19,3 +19,6 @@
     user_attributes: "+givenname,+sn,+ui"
   notify:
   - restart sssd
+
+- name: restart sssd
+  service: name=sssd state=restarted
