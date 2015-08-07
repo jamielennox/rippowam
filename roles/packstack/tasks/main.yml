@@ -196,3 +196,25 @@
 
 - include: fed_sssd.yml
 
+- name: Open Firewall for services
+  firewalld: service={{ item }} permanent=true state=enabled
+  with_items:
+    - http
+    - https
+
+- name: Open Firewall for ports
+  firewalld: port={{ item }} permanent=true state=enabled
+  with_items:
+    - 5000/tcp
+    - 35357/tcp
+    - 8773/tcp
+    - 8774/tcp
+    - 8775/tcp
+    - 3333/tcp
+    - 6080/tcp
+    - 8776/tcp
+    - 9191/tcp
+    - 9292/tcp
+    - 5672/tcp
+        
+  notify: restart firewalld

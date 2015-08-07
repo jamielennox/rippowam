@@ -10,6 +10,16 @@
   command: yum -y localinstall /python-openstackclient-1.0.3-3.el7.noarch.rpm
   when: osc_package.changed
 
+
+- name: fetch updated DOA
+  get_url: url=https://admiyo.fedorapeople.org/openstack/python-django-openstack-auth/python-django-openstack-auth-1.2.0-4.el7.src.rpm dest=/
+  register: doa_package
+
+- name: install updated DOA
+  command: yum -y localinstall /python-django-openstack-auth-1.2.0-4.el7.src.rpm
+  when: doa_package.changed
+
+
 - name: copy rules file
   copy:
     src=roles/packstack/files/mapping_sssd.json
@@ -80,6 +90,7 @@
         10-keystone_wsgi_admin.conf ]
     - [ "LoadModule auth_gssapi_module modules/mod_auth_gssapi.so",
         "LoadModule lookup_identity_module modules/mod_lookup_identity.so",
+        "SetEnv IDP_ID SSSD",
         "<location ~ \"kerberos\">",
         "AuthType GSSAPI",
         "AuthName GSSAPI-SSO",
@@ -103,6 +114,23 @@
             kerberos: keystone.auth.plugins.mapped.Mapped
   notify: restart httpd
 
+- name: Kerberos as Login mechanism
+  ini_file: dest=/etc/keystone/keystone.conf
+            section=federation
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+            trusted_dashboard: https://{{ ansible_fqdn }}/dashboard/auth/websso/
+            sso_callback_template: /etc/keystone/sso_callback_template.html
+  notify: restart httpd
+
+
+- name: Kerberos as Login mechanism
+  ini_file: dest=/etc/keystone/keystone.conf
+            section=kerberos
+            option=remote_id_attribute
+            value=IDP_ID
+  notify: restart httpd
 
 
 - name: horizon WebSSO Configuration
