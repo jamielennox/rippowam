@@ -1,8 +1,7 @@
 ---
 
 - name: Install httpd for conf directories
-  yum: name=httpd,firewalld
-
+  yum: name=httpd
        state=installed
 
 - name: Start certmonger
@@ -196,6 +195,17 @@
   command: systemctl restart httpd.service
 
 - include: fed_sssd.yml
+
+- name: Uninstall iptables
+  yum: name=iptables state=absent
+
+- name: Install firewalld
+  yum: name=firewalld
+       state=installed
+
+- name: start firewalld
+  command: systemctl start firewalld.service
+
 
 - name: Open Firewall for services
   firewalld: service={{ item }} permanent=true state=enabled
