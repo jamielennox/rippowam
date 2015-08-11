@@ -2,7 +2,6 @@
 - name: Install nightly repo
   template:
     src: rhel-nightly.repo.j2
-#    src: rhel.repo
     dest: /etc/yum.repos.d/rhel-nightly.repo
 
 - name: upgrade all packages
@@ -25,12 +24,6 @@
   command: nmcli connection  add type ethernet ifname eth1  con-name ethernet-eth1
   when: ansible_eth1.ipv4 is not defined
 
-
-#- name: update facts
-#  setup:
-#  when: ansible_eth1.ipv4 is not defined
-
-
 - name: enable firewalld
   command: systemctl enable firewalld.service
 
@@ -40,16 +33,16 @@
 - name: disable selinux
   selinux: state=disabled
 
-#- name: patch rngd
-#  copy: src=rngd.service dest=/etc/systemd/system/rngd.service
-#  register: rngd
+- name: patch rngd
+  copy: src=rngd.service dest=/etc/systemd/system/rngd.service
+  register: rngd
 
-#- name: reload systemd units
-#  command: systemctl daemon-reload
-#  when: rngd.changed
+- name: reload systemd units
+  command: systemctl daemon-reload
+  when: rngd.changed
 
-#- name: Start the rngd service
-#  service: name=rngd enabled=yes state=started
+- name: Start the rngd service
+  service: name=rngd enabled=yes state=started
 
 - name: Set up authorized_keys for the deploy user
   authorized_key: user="{{ ansible_user_id }}"
