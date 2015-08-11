@@ -22,7 +22,7 @@ repo_urls:
   - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-ipa-1.13.0-12.el7.x86_64.rpm
   - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-krb5-1.13.0-12.el7.x86_64.rpm
   - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-krb5-common-1.13.0-12.el7.x86_64.rpm
-  - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-ldap-1.13.0-12.el7.x86_64.rpm
+  - http://download.eng.bos.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-ldap-1.13.0-12.el7.x86_64.rpm
   - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-libwbclient-1.13.0-12.el7.x86_64.rpm
   - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-libwbclient-devel-1.13.0-12.el7.x86_64.rpm
   - http://download.devel.redhat.com/brewroot/packages/sssd/1.13.0/12.el7/x86_64/sssd-proxy-1.13.0-12.el7.x86_64.rpm
