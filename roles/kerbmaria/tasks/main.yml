@@ -1,0 +1,30 @@
+---
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+- name: check for keystone user
+  command:  >
+    curl -s
+    -H Referer:https://ipa.{{ ipa_domain }}/ipa
+    -H "Content-Type:application/json"
+    -H "Accept:applicaton/json"
+    --negotiate -u ":"
+    -d  '{"method":"user_show","params":[["keystone"],{}],"id":0}'
+    -X POST https://ipa.{{ ipa_domain }}/ipa/json 
+  register: keystone_user_show_result
+
+- set_fact:
+     keystone_user_show: "{{ keystone_user_show_result.stdout|from_json }}"
+
+- debug: var=keystone_user_show
+
+
+- name: add keystone user
+  command:   ipa user-add keystone --first=keystone --last=service
+  when: keystone_user_show.error.name is defined
+
+
+- name: kdestroy
+  shell: kdestroy

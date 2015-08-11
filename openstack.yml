@@ -1,16 +1,3 @@
-- hosts: ipa
-  sudo: yes
-  remote_user: "{{ cloud_user }}"
-  roles:
-    - common
-    - ipaserver
-    - ipsilonserver
-  vars:
-    hostname: "{{ ansible_fqdn }}"
-    #ipa_realm: Set By Inventory
-    ipa_admin_password: "{{ ipa_admin_user_password }}"
-    ipa_dns_forwarder:  "{{ ipa_forwarder }}"
-    nightly_version: 20150803.n.0
 
 - hosts: openstack
   sudo: yes

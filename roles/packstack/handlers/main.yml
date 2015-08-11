@@ -18,3 +18,11 @@
 - name: restart httpd
   sudo: yes
   service: name=httpd state=restarted
+
+- name: restart sssd
+  service: name=sssd state=restarted
+
+- name: restart firewalld
+  service: name=firewalld
+           enabled=yes
+           state=restarted
