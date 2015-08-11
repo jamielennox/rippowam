@@ -23,6 +23,4 @@
   service: name=sssd state=restarted
 
 - name: restart firewalld
-  service: name=firewalld
-           enabled=yes
-           state=restarted
+  service: name=firewalld state=restarted

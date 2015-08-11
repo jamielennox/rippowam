@@ -2,7 +2,6 @@
 - name: install sssd dbus
   yum: name=sssd-dbus state=installed
 
-
 - name: Infopipe for SSSD
   ini_file: dest=/etc/sssd/sssd.conf
             section=sssd
@@ -18,7 +17,4 @@
     allowed_uids: "apache,root"
     user_attributes: "+givenname,+sn,+ui"
   notify:
-  - restart sssd
-
-- name: restart sssd
-  service: name=sssd state=restarted
+    - restart sssd

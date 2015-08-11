@@ -35,11 +35,8 @@
   args:
     creates: "{{ keytab }}"
 
-- name: Set Keytab ownership
-  command: chown apache:apache  "{{ keytab }}"
-
 - name: Set Keytab permissions
-  command: chmod 600 "{{ keytab }}"
+  file: path="{{ keytab }}" owner=apache:apache mode=0600
 
 - name: kdestroy
   command: kdestroy
@@ -199,8 +196,9 @@
        state=installed
 
 - name: start firewalld
-  command: systemctl start firewalld.service
-
+  service: name=firewalld
+           state=started
+           enabled=yes
 
 - name: Open Firewall for services
   firewalld: service={{ item }} permanent=true state=enabled
