@@ -1,0 +1,72 @@
+#!/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+DOCUMENTATION = '''
+---
+module: ipaservice
+short_description: Add services to FreeIPA
+author: Jamie Lennox
+notes:
+  - No attempt is made to handle authentication in this module. This means that
+    you will probably want to ensure a valid kerberos ticket before running.
+  - This module does not create the hosts as part of the service enrollment.
+    That will need to be done seperately.
+requirements:
+  - ipalib
+  - six
+'''
+
+
+import six
+from ipalib import api, errors
+
+api.bootstrap(context='cli')
+api.finalize()
+api.Backend.rpcclient.connect()
+
+
+from ansible.module_utils.basic import *  # noqa
+
+module = AnsibleModule(
+    argument_spec=dict(
+        principal=dict(required=True),
+    )
+)
+
+
+def main():
+    def _param(p):
+        v = module.params[p]
+
+        if isinstance(v, six.binary_type):
+            v = v.decode('utf-8')
+
+        return v
+
+    principal = _param('principal')
+
+    resp = api.Command['service_find'](krbprincipalname=principal)
+
+    if resp['result']:
+        module.exit_json(changed=False)
+    else:
+        resp = api.Command['service_add'](principal)
+        module.exit_json(changed=True)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except errors.PublicError as e:
+        module.fail_json(msg=e.msg)

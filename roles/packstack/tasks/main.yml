@@ -13,13 +13,8 @@
   shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
   changed_when: false
 
-# not sure why i have to use --force in the service-add here. I get the error
-# ipa: ERROR: Host does not have corresponding DNS A/AAAA record
-# otherwise
 - name: Add HTTP/openstack service
-  shell: ipa service-show HTTP/{{ hostname }}@{{ ipa_realm }} 2>/dev/null || ipa service-add --force HTTP/{{ hostname }}@{{ ipa_realm }}
-  register: addservice
-  changed_when: "'Added service' in addservice.stdout"
+  ipaservice: principal=HTTP/{{ hostname }}@{{ ipa_realm }}
 
 - name: Get HTTP certificate
   command: >
