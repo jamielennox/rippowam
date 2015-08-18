@@ -3,31 +3,21 @@
 # Bug https://bugzilla.redhat.com/show_bug.cgi?id=1249267
 
 - name: fetch updated OSC
-  get_url: url=https://admiyo.fedorapeople.org/openstack/python-openstackclient/python-openstackclient-1.0.3-3.el7.noarch.rpm dest=/
-  register: osc_package
-
-- name: install updated OSC
-  command: yum -y localinstall /python-openstackclient-1.0.3-3.el7.noarch.rpm
-  when: osc_package.changed
-
-
-- name: fetch updated DOA
-  get_url: url=https://admiyo.fedorapeople.org/openstack/python-django-openstack-auth/python-django-openstack-auth-1.2.0-4.el7.noarch.rpm dest=/
-  register: doa_package
-
-- name: install updated DOA
-  command: yum -y localinstall /python-django-openstack-auth-1.2.0-4.el7.noarch.rpm
-  when: doa_package.changed
-
+  yum: name={{item}} state=installed
+  with_items:
+    - https://admiyo.fedorapeople.org/openstack/python-openstackclient/python-openstackclient-1.0.3-3.el7.noarch.rpm
+    - https://admiyo.fedorapeople.org/openstack/python-django-openstack-auth/python-django-openstack-auth-1.2.0-4.el7.noarch.rpm
 
 - name: copy rules file
   copy:
     src=roles/packstack/files/mapping_sssd.json
     dest=/mapping_sssd.json
+
 - name: list groups
   command:  openstack group list -c Name -f csv
   environment: os_env
   register: os_groups
+  changed_when: false
 
 - name: group
   command: openstack group create admins
@@ -47,6 +37,7 @@
   command: openstack identity provider list -c ID -f csv
   environment: os_env
   register: os_idps
+  changed_when: false
 
 - name: identity provider
   command: openstack identity provider create --remote-id SSSD   sssd
@@ -57,19 +48,19 @@
   command: openstack mapping list -c ID -f csv
   environment: os_env
   register: os_mappings
+  changed_when: false
 
 - name: create mapping
   command: openstack mapping create --rules /mapping_sssd.json kerberos_mapping
   environment: os_env
   when: ' "\"kerberos_mapping\"" not in os_mappings.stdout_lines'
 
-
 - name: list protocols
   command: openstack federation protocol list  --identity-provider  sssd -c id
     -f csv
   environment: os_env
   register: os_sssd_protocols
-
+  changed_when: false
 
 - name: federation protocol create
   command: openstack federation protocol create --identity-provider sssd
@@ -110,8 +101,8 @@
             option={{ item.key }}
             value={{ item.value }}
   with_dict:
-            methods: external,password,token,oauth1,kerberos
-            kerberos: keystone.auth.plugins.mapped.Mapped
+    methods: external,password,token,oauth1,kerberos
+    kerberos: keystone.auth.plugins.mapped.Mapped
   notify: restart httpd
 
 - name: Kerberos as Login mechanism
@@ -120,8 +111,8 @@
             option={{ item.key }}
             value={{ item.value }}
   with_dict:
-            trusted_dashboard: https://{{ ansible_fqdn }}/dashboard/auth/websso/
-            sso_callback_template: /etc/keystone/sso_callback_template.html
+    trusted_dashboard: https://{{ ansible_fqdn }}/dashboard/auth/websso/
+    sso_callback_template: /etc/keystone/sso_callback_template.html
   notify: restart httpd
 
 

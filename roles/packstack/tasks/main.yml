@@ -1,139 +1,5 @@
 ---
-
-- name: Install httpd for conf directories
-  yum: name=httpd
-       state=installed
-
-- name: Start certmonger
-  service: name=certmonger
-           enabled=true
-           state=started
-
-- name: kinit
-  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
-  changed_when: false
-
-- name: Add HTTP/openstack service
-  ipaservice: principal=HTTP/{{ hostname }}@{{ ipa_realm }}
-
-- name: Get HTTP certificate
-  command: >
-    ipa-getcert request
-    -f {{ ssl_cert }}
-    -k {{ ssl_key }}
-    -D "{{ hostname }}"
-    -K HTTP/{{ hostname }}
-  args:
-    creates: "{{ ssl_key }}"
-
-- name: Get Keytab
-  command:  >
-    ipa-getkeytab
-    -s ipa.{{ ipa_domain }}
-    -k {{ keytab  }}
-    -p  HTTP/{{ hostname }}@{{ ipa_realm }}
-  args:
-    creates: "{{ keytab }}"
-
-- name: Set Keytab permissions
-  file: path="{{ keytab }}" owner=apache:apache mode=0600
-
-- name: kdestroy
-  command: kdestroy
-  changed_when: false
-
-
-- include: packstack.yml
-
-
-- name: nova v3 authentication
-  ini_file: section=keystone_authtoken
-            dest=/etc/nova/nova.conf
-            option={{ item.key }}
-            value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: nova
-    password: "{{ nova_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
-  notify:
-    - restart nova-api
-
-
-- name: glance-api v3 authentication
-  ini_file: section=keystone_authtoken
-            dest=/etc/glance/glance-api.conf
-            option={{ item.key }}
-            value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: glance
-    password: "{{ glance_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
-  notify:
-    - restart glance-api
-
-- name: glance-registry v3 authentication
-  ini_file: section=keystone_authtoken
-            dest=/etc/glance/glance-registry.conf
-            option={{ item.key }}
-            value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: glance
-    password: "{{ glance_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
-  notify:
-    - restart glance-registry
-
-- name: cinder v3 authentication
-  ini_file: section=keystone_authtoken
-            dest=/etc/cinder/cinder.conf
-            option={{ item.key }}
-            value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: cinder
-    password: "{{ cinder_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
-  notify:
-    - restart cinder-api
-
-- name: horizon v3 authentication
-  lineinfile: dest=/etc/openstack-dashboard/local_settings
-              line="OPENSTACK_API_VERSIONS = {{ openstack_api_versions | to_json }}"
-  notify:
-    - restart httpd
-
-- name: horizon keystone https
-  lineinfile: dest=/etc/openstack-dashboard/local_settings
-              line="OPENSTACK_KEYSTONE_URL = \"https://{{ hostname }}:5000/v3\""
-              regexp="^OPENSTACK_KEYSTONE_URL"
-
-- name: keystone SSL
-  lineinfile: dest=/etc/httpd/conf.d/{{ item[0] }}
-              line="  {{ item[1] }}"
-              insertbefore="</VirtualHost>"
-  with_nested:
-    - [ 10-keystone_wsgi_main.conf,
-        10-keystone_wsgi_admin.conf ]
-    - [ "SSLEngine on",
-        "SSLCertificateFile \"{{ ssl_cert }}\"",
-        "SSLCertificateKeyFile \"{{ ssl_key }}\"",
-        "SSLCACertificateFile \"/etc/ipa/ca.crt\"" ]
-  notify: restart httpd
+- include: ipa-setup.yml
 
 - name: install epel
   yum: name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -143,26 +9,15 @@
   yum: name=python-pip
        state=installed
 
+- include: packstack.yml
+# - include: keystoneclient-kerberos.yml
+- include: serviceauth.yml
+
 # https://bugzilla.redhat.com/show_bug.cgi?id=1245028
 - name: install eventlet 0.17.4
   pip: name=eventlet
        version=0.17.4
        state=present
-
-- name: update keystone endpoints - public
-  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:5000/v2.0\" where url like \"http://%:5000/v2.0\";"
-  register: keystonesqlpublic
-  changed_when: '"0 rows affected" not in keystonesqlpublic.stdout'
-
-- name: update keystone endpoints - admin
-  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:35357/v2.0\" where url like \"http://%:35357/v2.0\";"
-  register: keystonesqladmin
-  changed_when: '"0 rows affected" not in keystonesqladmin.stdout'
-
-- name: remove nova v2 overrides
-  ini_file: dest=/usr/share/nova/nova-dist.conf
-            section=keystone_authtoken
-            state=absent
 
 - name: install adminrc file
   template: src=adminrc.j2
@@ -175,50 +30,19 @@
 - name: add test file to federation
   copy: src=test
         dest=/var/www/cgi-bin/keystone/test
+  notify:
+    - restart httpd
 
 - name: add sample line to keystone
   lineinfile: dest=/etc/httpd/conf.d/10-keystone_wsgi_main.conf
               line='#  WSGIScriptAlias "/v3/auth/OS-FEDERATION/websso/saml2" "/var/www/cgi-bin/keystone/test"'
               insertbefore="WSGIScriptAlias"
+  notify:
+    - restart httpd
 
 - include: infopipe.yml
 
-- name: Force restart HTTPD
-  command: systemctl restart httpd.service
+- meta: flush_handlers
 
 - include: fed_sssd.yml
-
-- name: Uninstall iptables
-  yum: name=iptables state=absent
-
-- name: Install firewalld
-  yum: name=firewalld
-       state=installed
-
-- name: start firewalld
-  service: name=firewalld
-           state=started
-           enabled=yes
-
-- name: Open Firewall for services
-  firewalld: service={{ item }} permanent=true state=enabled
-  with_items:
-    - http
-    - https
-
-- name: Open Firewall for ports
-  firewalld: port={{ item }} permanent=true state=enabled
-  with_items:
-    - 5000/tcp
-    - 35357/tcp
-    - 8773/tcp
-    - 8774/tcp
-    - 8775/tcp
-    - 3333/tcp
-    - 6080/tcp
-    - 8776/tcp
-    - 9191/tcp
-    - 9292/tcp
-    - 5672/tcp
-
-  notify: restart firewalld
+- include: firewall.yml

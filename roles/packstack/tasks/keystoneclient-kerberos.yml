@@ -1,0 +1,14 @@
+---
+- name: install kerberos requirements
+  yum: name=python-pip,python-kerberos,git
+
+- name: clone python-keystoneclient-kerberos
+  git: accept_hostkey=yes
+       dest=/opt/python-keystoneclient-kerberos
+       repo=https://github.com/openstack/python-keystoneclient-kerberos.git
+  register: clone_kerberos
+
+- name: install python-keystoneclient-kerberos
+  pip: extra_args="-e "
+       name="/opt/python-keystoneclient-kerberos"
+  when: clone_kerberos.changed

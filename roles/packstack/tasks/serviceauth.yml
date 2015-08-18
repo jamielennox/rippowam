@@ -1,0 +1,109 @@
+---
+- name: nova v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/nova/nova.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: nova
+    password: "{{ nova_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart nova-api
+
+- name: glance-api v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/glance/glance-api.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: glance
+    password: "{{ glance_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart glance-api
+
+- name: glance-registry v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/glance/glance-registry.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: glance
+    password: "{{ glance_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart glance-registry
+
+- name: cinder v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/cinder/cinder.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: cinder
+    password: "{{ cinder_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart cinder-api
+
+- name: horizon v3 authentication
+  lineinfile: dest=/etc/openstack-dashboard/local_settings
+              line="OPENSTACK_API_VERSIONS = {{ openstack_api_versions | to_json }}"
+  notify:
+    - restart httpd
+
+- name: horizon keystone https
+  lineinfile: dest=/etc/openstack-dashboard/local_settings
+              line="OPENSTACK_KEYSTONE_URL = \"https://{{ hostname }}:5000/v3\""
+              regexp="^OPENSTACK_KEYSTONE_URL"
+  notify:
+    - restart httpd
+
+- name: keystone SSL
+  lineinfile: dest=/etc/httpd/conf.d/{{ item[0] }}
+              line="  {{ item[1] }}"
+              insertbefore="</VirtualHost>"
+  with_nested:
+    - [ 10-keystone_wsgi_main.conf,
+        10-keystone_wsgi_admin.conf ]
+    - [ "SSLEngine on",
+        "SSLCertificateFile \"{{ ssl_cert }}\"",
+        "SSLCertificateKeyFile \"{{ ssl_key }}\"",
+        "SSLCACertificateFile \"/etc/ipa/ca.crt\"" ]
+  notify:
+    - restart httpd
+
+- name: update keystone endpoints - public
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:5000/v2.0\" where url like \"http://%:5000/v2.0\";"
+  register: keystonesqlpublic
+  changed_when: '"0 rows affected" not in keystonesqlpublic.stdout'
+
+- name: update keystone endpoints - admin
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:35357/v2.0\" where url like \"http://%:35357/v2.0\";"
+  register: keystonesqladmin
+  changed_when: '"0 rows affected" not in keystonesqladmin.stdout'
+
+- name: remove nova v2 overrides
+  ini_file: dest=/usr/share/nova/nova-dist.conf
+            section=keystone_authtoken
+            state=absent
+  notify:
+    - restart nova-api
+

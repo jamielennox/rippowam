@@ -61,7 +61,7 @@ def main():
     if resp['result']:
         module.exit_json(changed=False)
     else:
-        resp = api.Command['service_add'](principal)
+        api.Command['service_add'](principal, force=True)
         module.exit_json(changed=True)
 
 

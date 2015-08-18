@@ -7,6 +7,8 @@
             section=sssd
             option=services
             value="nss, sudo, pam, ssh, ifp"
+  notify:
+    - restart sssd
 
 - name: Infopipe users
   ini_file: dest=/etc/sssd/sssd.conf

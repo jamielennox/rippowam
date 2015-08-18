@@ -1,6 +1,8 @@
 - hosts: ipa
   sudo: yes
   remote_user: "{{ cloud_user }}"
+  tags:
+    - ipa
   roles:
     - common
     - ipaserver
@@ -15,6 +17,8 @@
 - hosts: openstack
   sudo: yes
   remote_user: "{{ cloud_user }}"
+  tags:
+    - openstack
   roles:
     - common
     - ipaclient
@@ -22,7 +26,7 @@
   vars:
     hostname: "{{ ansible_fqdn }}"
     nightly_version: 20150803.n.0
-    dns_search: "{{ ipa_domain }}" 
+    dns_search: "{{ ipa_domain }}"
     dns_nameservers:
       - "{{ nameserver }}"
 

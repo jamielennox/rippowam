@@ -1,8 +1,10 @@
 ---
-- name: Install nightly repo
-  template:
-    src: rhel-nightly.repo.j2
-    dest: /etc/yum.repos.d/rhel-nightly.repo
+- name: Install repos
+  copy: src="{{ item }}"
+        dest=/etc/yum.repos.d/{{ item }}
+  with_items:
+    - rhel-server.repo
+    - rhel-server-optional.repo
 
 - name: upgrade all packages
   yum: name=* state=latest
@@ -18,10 +20,7 @@
   when: ansible_eth1.ipv4 is not defined
 
 - name: enable firewalld
-  command: systemctl enable firewalld.service
-
-- name: start firewalld
-  command: systemctl restart firewalld.service
+  service: enabled=yes state=started name=firewalld
 
 - name: disable selinux
   selinux: state=disabled

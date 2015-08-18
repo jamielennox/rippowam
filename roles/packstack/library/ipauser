@@ -52,6 +52,7 @@ module = AnsibleModule(
         uid=dict(required=True),
         first=dict(),
         last=dict(),
+        password=dict(),
     )
 )
 
@@ -86,6 +87,9 @@ def main():
             module.exit_json(changed=False)
 
     else:
+        if module.params['password']:
+            rpc_params['userpassword'] = _param('password')
+
         if not module.check_mode:
             api.Command['user_add'](uid, **rpc_params)
 
