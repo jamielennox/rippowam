@@ -48,6 +48,13 @@
   args:
     creates: /etc/ipa/ca.crt
 
+- name: install ipa kra
+  command: >
+    ipa-kra-install -U
+    -p {{ ipa_dm_password }}
+  args:
+    creates: /etc/httpd/alias/kra-agent.pem
+
 - name: Open Firewall for services
   firewalld: service={{ item }} permanent=true state=enabled
   with_items:
@@ -67,5 +74,6 @@
     - 9443-9446/tcp
     - 9701/tcp
     - 7389/tcp
+    - 8443/tcp
   notify: restart firewalld
 

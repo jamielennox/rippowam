@@ -191,6 +191,8 @@
 
 - include: fed_sssd.yml
 
+- include: barbican.yml
+
 - name: Uninstall iptables
   yum: name=iptables state=absent
 
@@ -222,5 +224,6 @@
     - 9191/tcp
     - 9292/tcp
     - 5672/tcp
+    - 9311/tcp
 
   notify: restart firewalld

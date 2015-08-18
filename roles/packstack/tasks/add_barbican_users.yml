@@ -1,0 +1,59 @@
+- name: get keystone token
+  command: openstack token issue
+  environment: os_env
+
+- name: list users
+  command:  openstack user list -c Name -f csv
+  environment: os_env
+  register: os_users
+
+- name: list projects
+  command:  openstack project list -c Name -f csv
+  environment: os_env
+  register: os_projects
+
+  name: list roles
+  command:  openstack role list -c Name -f csv
+  environment: os_env
+  register: os_roles
+
+- name: create barbican service user
+  command: openstack user create --name=barbican --pass=password --email=barbican@example.com
+  environment: os_env
+  when: '"\"barbican\"" not in os_users.stdout_lines'
+
+- name: create service project
+  command: openstack project create --name=service --description="Service Tenant"
+  environment: os_env
+  when: '"\"service\"" not in os_projects.stdout_lines'
+
+- name: add admin role for barbican service user
+  command: openstack role add --user=barbican --project=service admin
+  environment: os_env
+
+- name: add creator role
+  command: openstack role add creator
+  environment: os_env
+  when: "\"creator\"" not in os_roles.stdout_lines'
+
+- name: add observer role
+  command: openstack role add observer
+  environment: os_env
+  when: "\"observer\"" not in os_roles.stdout_lines'
+
+- name: add audit role
+  command: openstack role add audit
+  environment: os_env
+  when: "\"audit\"" not in os_roles.stdout_lines'
+
+- name: add barbican service
+  command: openstack service create --name=barbican --description="Barbican Key Management Service" key-manager
+  environment: os_env
+
+- name: add barbican endpoint
+  command: openstack endpoint create \
+           --region RegionOne \
+           --publicurl "http://{{ hostname }}:9311" \
+           --internalurl "http://{{ hostname }}:9311" \
+           --service_id
+  environment: os_env

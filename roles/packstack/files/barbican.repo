@@ -1,0 +1,6 @@
+[barbican]
+name=barbican
+baseurl=https://copr-be.cloud.fedoraproject.org/results/vakwetu/barbican/fedora-22-$basearch/
+gpgcheck=0
+enabled=1
+enabled_metadata=1

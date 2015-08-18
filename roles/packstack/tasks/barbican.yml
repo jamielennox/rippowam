@@ -1,0 +1,65 @@
+---
+- name: install barbican repo
+  register: barbicanrepo
+  copy: src=barbican.repo
+        dest=/etc/yum.repos.d/barbican.repo
+
+- name: install barbican packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - openstack-barbican
+    - openstack-barbican-api
+
+- name: install barbican client package
+  yum: name={{ item }} state=installed
+  with_items:
+    - python-barbicanclient
+
+- name: set write permission for barbican database
+  file: path=/var/lib/barbican state=directory mode=0757
+
+- name: set ownership of /etc/barbican
+  file: path=/etc/barbican state=directory owner=barbican group=barbican
+
+- name: install pki-base for Dogtag client libraries
+  yum: name=pki-base state=installed
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+- name: get kra agent pem file
+  command: scp admin@ipa.{{ ipa_domain }}:/etc/httpd/alias/kra-agent.pem /etc/barbican
+  args:
+    creates: /etc/barbican/kra-agent.pem
+
+- name: configure dogtag_plugin in barbican-api.conf
+  ini_file: dest=/etc/barbican/barbican-api.conf
+            section=dogtag_plugin
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    dogtag_host: "ipa.{{ ipa_domain }}"
+    dogtag_port: "8443"
+    pem_path: "/etc/barbican/kra-agent.pem"
+
+- name: enable dogtag secret store in barbican-api.conf
+  ini_file: dest=/etc/barbican/barbican-api.conf
+            section=secretstore
+            option=enabled_secretstore_plugins
+            value="dogtag_crypto"
+
+- name: enable dogtag secret cert plugin in barbican-api.conf
+  ini_file: dest=/etc/barbican/barbican-api.conf
+            section=certificate
+            option=enabled_certificate_plugins
+            value="dogtag"
+
+- name: configure barbican-api-paste to talk to keystone
+  ini_file: dest=/etc/barbican/barbican-api.paste
+            section=pipeline:barbican_api
+            option=pipeline
+            value="keystone_authtoken context apiapp"
+
+- name: restart barbican server
+  service: name=openstack-barbican-api state=restarted

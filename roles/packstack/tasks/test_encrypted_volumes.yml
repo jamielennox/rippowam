@@ -1,0 +1,51 @@
+- name: enable barbican key manager in nova
+  ini_file: dest=/etc/nova/nova.conf
+            section=keymgr
+            option=api_class
+            value="nova.keymgr.barbican.BarbicanKeyManager"
+
+- name: enable barbican key manager in cinder
+  ini_file: dest=/etc/cinder/cinder.conf
+            section=keymgr
+            option=api_class
+            value="cinder.keymgr.barbican.BarbicanKeyManager"
+
+- name: restart nova
+  service: name=openstack-nova-api state=restarted
+
+- name: restart cinder
+  service: name=openstack-cinder-api state=restarted
+
+- name: get keystone token
+  command: openstack token issue
+  environment: os_env
+
+- name: create volume type LUKS
+  command: openstack volume type create LUKS
+  environment: os_env
+
+  name: create volume encryption type for LUKS
+  command: >
+    cinder encryption-type-create
+      --cipher aes-xts-plain64
+      --key_size 512  --control_location front-end
+      LUKS
+      nova.volume.encryptors.luks.LuksEncryptor
+  environment: os_env_v2
+
+- name: create encrypted volume
+  command: >
+    openstack volume create
+      --display-name 'encrypted volume'
+      --type LUKS 1
+
+- name: create new server
+  command: >
+    openstack server create
+      --flavor m1.tiny
+      --image cirros-0.3.1-x86_64-disk
+      vm-test
+
+- name: attach encrypted volume to server
+  command: >
+    openstack volume-attach vm-test db50b71c-bf97-47cb-a5cf-b4b43a0edab6 /dev/vdc
