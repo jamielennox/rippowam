@@ -7,13 +7,6 @@
 - name: upgrade all packages
   yum: name=* state=latest
 
-
-- name: hack off broken socket
-  command: rm -f /dev/log
-
-- name: replace syslog socket with symlink
-  command:  ln -s  /run/systemd/journal/dev-log /dev/log
-
 - name: Install packages
   yum: name={{ item }}
   with_items:
