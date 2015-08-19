@@ -1,0 +1,34 @@
+# NOTE(jamielennox): with this enabled for some reason the fed_sssd tasks don't complete. It fails either
+# creating a mapping or a IDP
+#<Location /v3/OS-FEDERATION/identity_providers/sssd/protocols/kerberos>
+#    AuthType GSSAPI
+#    AuthName GSSAPI-SSO
+#    GssapiCredStore keytab:/etc/httpd/conf/openstack.keytab
+#    GssapiLocalName on
+#    GssapiSSLonly On
+#    Require valid-user
+#    LookupUserAttr mail REMOTE_USER_EMAIL
+#    LookupUserGroups REMOTE_USER_GROUPS ;
+#
+#    SetEnv IDP_ID SSSD
+#</Location>
+
+<Location /v3/auth/OS-FEDERATION/websso/saml2>
+    MellonEnable "auth"
+    MellonSPPrivateKeyFile "/etc/httpd/saml2/certificate.key"
+    MellonSPCertFile "/etc/httpd/saml2/certificate.pem"
+    MellonSPMetadataFile "/etc/httpd/saml2/metadata.xml"
+    MellonIdPMetadataFile "/etc/httpd/saml2/idp-metadata.xml"
+    MellonEndpointPath /v3/auth/OS-FEDERATION/websso/saml2
+    MellonVariable "saml-sesion-cookie"
+    # Comment out the next two lines if you want to allow logins on bare HTTP
+    MellonsecureCookie On
+    SSLRequireSSL
+    MellonUser "NAME_ID"
+    MellonIdP "IDP"
+    MellonSessionLength 3600
+    # MellonNoCookieErrorPage "https://idp.example.com/no-cookie-error.html"
+    # MellonPostDirectory "/var/lib/ipsilon/post_cache"
+    # MellonPostReplay On
+    MellonMergeEnvVars On
+</Location>

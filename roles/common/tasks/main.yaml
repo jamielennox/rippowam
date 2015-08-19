@@ -1,4 +1,7 @@
 ---
+- name: disable selinux
+  selinux: state=disabled
+
 - name: Install repos
   copy: src="{{ item }}"
         dest=/etc/yum.repos.d/{{ item }}
@@ -10,20 +13,7 @@
   yum: name=* state=latest
 
 - name: Install packages
-  yum: name={{ item }}
-  with_items:
-      - rng-tools
-      - firewalld
-
-- name: Add second ethernet interface
-  command: nmcli connection  add type ethernet ifname eth1  con-name ethernet-eth1
-  when: ansible_eth1.ipv4 is not defined
-
-- name: enable firewalld
-  service: enabled=yes state=started name=firewalld
-
-- name: disable selinux
-  selinux: state=disabled
+  yum: name=rng-tools
 
 - name: patch rngd
   copy: src=rngd.service dest=/etc/systemd/system/rngd.service
@@ -35,6 +25,10 @@
 
 - name: Start the rngd service
   service: name=rngd enabled=yes state=started
+
+- name: Add second ethernet interface
+  command: nmcli connection  add type ethernet ifname eth1  con-name ethernet-eth1
+  when: not ansible_eth1.ipv4 is defined
 
 - name: Set up authorized_keys for the deploy user
   authorized_key: user="{{ ansible_user_id }}"

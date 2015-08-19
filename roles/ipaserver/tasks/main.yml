@@ -22,8 +22,16 @@
   args:
     creates: /etc/ipa/ca.crt
 
+- name: enable firewalld
+  service: enabled=yes
+           state=started
+           name=firewalld
+
 - name: Open Firewall for services
-  firewalld: service={{ item }} permanent=true state=enabled
+  firewalld: service={{ item }}
+             permanent=true
+             state=enabled
+             immediate=yes
   with_items:
     - http
     - https
@@ -35,11 +43,12 @@
     - ntp
 
 - name: Open Firewall for ports
-  firewalld: port={{ item }} permanent=true state=enabled
+  firewalld: port={{ item }}
+             permanent=true
+             state=enabled
+             immediate=yes
   with_items:
     - 9180/tcp
     - 9443-9446/tcp
     - 9701/tcp
     - 7389/tcp
-  notify: restart firewalld
-

@@ -1,0 +1,32 @@
+---
+- name: copy rules file
+  copy: src=mapping_ipsilon_saml2.json
+        dest=/mapping_ipsilon_saml2.json
+
+- name: Ipsilon identity provider
+  command: >
+    openstack identity provider create
+    --remote-id https://ipa.fedtest.org/idp/saml2/metadata
+    ipsilon
+  environment: os_env
+  when: '"\"ipsilon\"" not in os_idps.stdout_lines'
+
+- name: create Ipsilon mapping
+  command: openstack mapping create --rules /mapping_ipsilon_saml2.json ipsilon_mapping
+  environment: os_env
+  when: ' "\"ipsilon_mapping\"" not in os_mappings.stdout_lines'
+
+- name: list protocols Ipsilon
+  command: openstack federation protocol list --identity-provider ipsilon -c id -f csv
+  environment: os_env
+  register: os_ipsilon_protocols
+  changed_when: false
+
+- name: federation protocol create
+  command: >
+    openstack federation protocol create
+    --identity-provider ipsilon
+    --mapping ipsilon_mapping
+    saml2
+  environment: os_env
+  when: ' "\"saml2\"" not in os_ipsilon_protocols.stdout_lines'

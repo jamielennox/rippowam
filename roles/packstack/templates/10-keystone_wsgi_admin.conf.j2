@@ -1,0 +1,26 @@
+<VirtualHost *:35357>
+    ServerName {{ hostname }}
+
+    ## Vhost docroot
+    DocumentRoot "/var/www/cgi-bin/keystone"
+
+    ## Directories, there should at least be a declaration for /var/www/cgi-bin/keystone
+
+    <Directory "/var/www/cgi-bin/keystone">
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    ## Logging
+    ErrorLog "/var/log/httpd/keystone_wsgi_admin_error.log"
+    ServerSignature Off
+    CustomLog "/var/log/httpd/keystone_wsgi_admin_access.log" combined
+
+    WSGIDaemonProcess keystone_admin display-name=keystone-admin group=keystone processes=1 threads=2 user=keystone
+    WSGIProcessGroup keystone_admin
+    WSGIScriptAlias / "/var/www/cgi-bin/keystone/admin"
+
+    Include "/etc/httpd/conf/keystone-ssl.conf"
+    Include "/etc/httpd/conf/keystone-federation.conf"
+</VirtualHost>

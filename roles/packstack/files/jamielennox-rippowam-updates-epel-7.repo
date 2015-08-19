@@ -1,0 +1,8 @@
+[jamielennox-rippowam-updates]
+name=Copr repo for rippowam-updates owned by jamielennox
+baseurl=https://copr-be.cloud.fedoraproject.org/results/jamielennox/rippowam-updates/epel-7-$basearch/
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/jamielennox/rippowam-updates/pubkey.gpg
+enabled=1
+enabled_metadata=1

@@ -1,23 +1,21 @@
 ---
-- include: ipa-setup.yml
+- name: install hacks copr repo
+  copy: src=jamielennox-rippowam-updates-epel-7.repo
+        dest=/etc/yum.repos.d/jamielennox-rippowam-updates-epel-7.repo
 
-- name: install epel
-  yum: name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-       state=installed
+- include: ipa-pre-packstack.yml
 
-- name: install pip
-  yum: name=python-pip
-       state=installed
-
+# # NOTE(jamielennox): are epel and pip needed anymore?
+# - name: install epel
+#   yum: name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#        state=installed
+#
+# - name: install pip
+#   yum: name=python-pip
+#        state=installed
+#
 - include: packstack.yml
-# - include: keystoneclient-kerberos.yml
 - include: serviceauth.yml
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1245028
-- name: install eventlet 0.17.4
-  pip: name=eventlet
-       version=0.17.4
-       state=present
 
 - name: install adminrc file
   template: src=adminrc.j2
@@ -27,22 +25,12 @@
   template: src=demorc.j2
             dest=~/demorc
 
-- name: add test file to federation
-  copy: src=test
-        dest=/var/www/cgi-bin/keystone/test
-  notify:
-    - restart httpd
-
-- name: add sample line to keystone
-  lineinfile: dest=/etc/httpd/conf.d/10-keystone_wsgi_main.conf
-              line='#  WSGIScriptAlias "/v3/auth/OS-FEDERATION/websso/saml2" "/var/www/cgi-bin/keystone/test"'
-              insertbefore="WSGIScriptAlias"
-  notify:
-    - restart httpd
-
 - include: infopipe.yml
-
+- include: keystone.yml
+- include: horizon.yml
+- include: ipa-post-packstack.yml
+# - include: firewall.yml
 - meta: flush_handlers
-
-- include: fed_sssd.yml
-- include: firewall.yml
+- include: keystone-environment.yml
+- include: keystone-sssd.yml
+- include: keystone-ipsilon.yml

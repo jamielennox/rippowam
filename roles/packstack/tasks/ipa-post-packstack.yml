@@ -1,0 +1,54 @@
+---
+- yum: name=ipa-python state=installed
+
+- name: Add local service user
+  user: createhome=no
+        name={{ item }}
+        home=/var/lib/{{ item }}
+  with_items:
+    - nova
+    - glance
+    - cinder
+    - neutron
+  register: packstack_users
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+- name: Add service principals
+  ipaservice: principal={{ item.name }}/{{ hostname }}@{{ ipa_realm }}
+  with_items: packstack_users.results
+
+- name: Add service keytab directories
+  file: state=directory
+        path="/var/lib/krb5/user/{{ item.uid }}"
+        mode=0700
+        owner={{ item.name }}
+        group={{ item.name }}
+  with_items: packstack_users.results
+
+- name: Get service user keytabs
+  command:  >
+    ipa-getkeytab
+    -s ipa.{{ ipa_domain }}
+    -k /var/lib/krb5/user/{{ item.uid }}/client.keytab
+    -p {{ item.name }}/{{ hostname }}@{{ ipa_realm }}
+  args:
+    creates: /var/lib/krb5/user/{{ item.uid }}/client.keytab
+  with_items: packstack_users.results
+  notify:
+    - restart cinder-api
+    - restart glance-api
+    - restart nova-api
+
+- name: Change service user keytab ownership
+  file: path="/var/lib/krb5/user/{{ item.uid }}/client.keytab"
+        mode=0700
+        owner={{ item.name }}
+        group={{ item.name }}
+  with_items: packstack_users.results
+
+- name: kdestroy
+  command: kdestroy
+  changed_when: false
