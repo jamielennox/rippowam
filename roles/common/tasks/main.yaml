@@ -13,7 +13,23 @@
   yum: name=* state=latest
 
 - name: Install packages
-  yum: name=rng-tools
+  yum: name={{ item }}
+  with_items:
+      - rng-tools
+      - firewalld
+
+- name: Add second ethernet interface
+  command: nmcli connection  add type ethernet ifname eth1  con-name ethernet-eth1
+  when: not ansible_eth1.ipv4 is defined
+
+- name: enable firewalld
+  command: systemctl enable firewalld.service
+
+- name: start firewalld
+  command: systemctl restart firewalld.service
+
+- name: disable selinux
+  selinux: state=disabled
 
 - name: patch rngd
   copy: src=rngd.service dest=/etc/systemd/system/rngd.service
