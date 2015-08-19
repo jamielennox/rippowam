@@ -80,8 +80,8 @@
     project_name: services
     user_domain_id: default
     project_domain_id: default
-  # notify:
-  #   - restart neutron-api
+  notify:
+    - restart neutron-api
 
 - name: remove nova v2 overrides
   ini_file: dest=/usr/share/nova/nova-dist.conf
