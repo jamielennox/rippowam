@@ -4,16 +4,6 @@
         dest=/etc/yum.repos.d/jamielennox-rippowam-updates-epel-7.repo
 
 - include: ipa-pre-packstack.yml
-
-# # NOTE(jamielennox): are epel and pip needed anymore?
-# - name: install epel
-#   yum: name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-#        state=installed
-#
-# - name: install pip
-#   yum: name=python-pip
-#        state=installed
-#
 - include: packstack.yml
 - include: serviceauth.yml
 
