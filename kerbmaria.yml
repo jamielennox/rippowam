@@ -1,0 +1,19 @@
+
+- hosts: openstack
+  sudo: yes
+  remote_user: "{{ cloud_user }}"
+  roles:
+#    - common
+#    - ipaclient
+#    - packstack
+    - kerbmaria 
+  vars:
+    hostname: "{{ ansible_fqdn }}"
+    nightly_version: 20150803.n.0
+    dns_search: "{{ ipa_domain }}" 
+    dns_nameservers:
+      - "{{ nameserver }}"
+
+    #ipa_realm: Set By Inventory
+    #ipa_domain: Set By Inventory
+    ipa_admin_password: "{{ipa_admin_user_password }}"

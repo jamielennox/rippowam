@@ -1,0 +1,4 @@
+
+---
+mysql_principal:
+  MySQL/{{ ansible_fqdn  }}@{{ ipa_realm }}
