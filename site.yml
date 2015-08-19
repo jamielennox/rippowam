@@ -23,6 +23,7 @@
     - common
     - ipaclient
     - packstack
+    - kerbmaria
   vars:
     hostname: "{{ ansible_fqdn }}"
     nightly_version: 20150817.n.2
