@@ -99,6 +99,7 @@
   with_dict:
     trusted_dashboard: https://{{ ansible_fqdn }}/dashboard/auth/websso/
     sso_callback_template: /etc/keystone/sso_callback_template.html
+    remote_id_attribute: MELLON_IDP
   notify:
     - restart httpd
 

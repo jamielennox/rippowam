@@ -6,7 +6,7 @@
 - name: Ipsilon identity provider
   command: >
     openstack identity provider create
-    --remote-id https://ipa.fedtest.org/idp/saml2/metadata
+    --remote-id https://ipa.{{ ipa_domain }}/idp/saml2/metadata
     ipsilon
   environment: os_env
   when: '"\"ipsilon\"" not in os_idps.stdout_lines'

@@ -24,7 +24,7 @@
          ],
          "remote": [
              {
-                 "type": "REMOTE_USER_GROUPS",
+                 "type": "MELLON_groups",
                  "blacklist": []
              }
          ]
