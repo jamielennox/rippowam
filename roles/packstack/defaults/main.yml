@@ -11,6 +11,9 @@ keystone_db_password: keystone
 nova_password: nova
 nova_db_password: nova
 
+neutron_password: neutron
+neutron_db_password: neutron
+
 keystone_admin_password: password
 keystone_demo_password: password
 

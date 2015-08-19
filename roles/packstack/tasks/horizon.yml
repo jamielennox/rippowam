@@ -1,0 +1,6 @@
+---
+- name: Install local settings file
+  template: src=local_settings.j2
+            dest=/etc/openstack-dashboard/local_settings
+  notify:
+    - restart httpd

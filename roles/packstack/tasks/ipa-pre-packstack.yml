@@ -1,0 +1,44 @@
+---
+- name: Install httpd for conf directories
+  yum: name=httpd
+       state=installed
+
+- name: Start certmonger
+  service: name=certmonger
+           enabled=true
+           state=started
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+- name: Add HTTP/openstack service
+  ipaservice: principal=HTTP/{{ hostname }}@{{ ipa_realm }}
+
+- name: Get HTTP certificate
+  command: >
+    ipa-getcert request -w
+    -f {{ ssl_cert }}
+    -k {{ ssl_key }}
+    -D "{{ hostname }}"
+    -K HTTP/{{ hostname }}
+  args:
+    creates: "{{ ssl_cert }}"
+  notify:
+    - restart httpd
+
+- name: Get Keytab
+  command:  >
+    ipa-getkeytab
+    -s ipa.{{ ipa_domain }}
+    -k {{ keytab  }}
+    -p  HTTP/{{ hostname }}@{{ ipa_realm }}
+  args:
+    creates: "{{ keytab }}"
+
+- name: Set Keytab permissions
+  file: path="{{ keytab }}" owner=apache group=apache mode=0600
+
+- name: kdestroy
+  command: kdestroy
+  changed_when: false

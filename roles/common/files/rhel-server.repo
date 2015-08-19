@@ -1,0 +1,5 @@
+[rhel-server]
+name=RHEL 7.2 Server
+baseurl=http://download.devel.redhat.com/nightly/latest-RHEL-7/compose/Server/$basearch/os/
+gpgcheck=0
+enabled=1

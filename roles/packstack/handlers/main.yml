@@ -15,6 +15,10 @@
   sudo: yes
   service: name=openstack-cinder-api state=restarted
 
+- name: restart neutron-api
+  sudo: yes
+  service: name=neutron-server state=restarted
+
 - name: restart httpd
   sudo: yes
   service: name=httpd state=restarted
@@ -23,6 +27,4 @@
   service: name=sssd state=restarted
 
 - name: restart firewalld
-  service: name=firewalld
-           enabled=yes
-           state=restarted
+  service: name=firewalld state=restarted

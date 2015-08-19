@@ -1,30 +1,4 @@
 ---
- # work around https://bugzilla.redhat.com/show_bug.cgi?id=1241941
- # add ipa-server above and remove this when fix lands in nightlys
- # in the current nightly python-cryptography is missing as well. It's in yesterday's though.
- #- name: create /iparepo
- #  file: dest=/iparepo
- #        state=directory
- #
- #- name: install createrepo
- #  yum: name=createrepo
- #       state=present
- #
- #- name: download hacked ipa
- #  get_url: url="{{ item }}"
- #           dest=/iparepo/{{ item | basename }}
- #  with_items:
- #    "{{ repo_urls }}"
- #  register: createrepo
- #
- #- name: createrepo file
- #  command: createrepo /iparepo
- #  when: createrepo.changed
- #
- #- name: add ipa repo to platform
- #  copy: dest=/etc/yum.repos.d/ipa.repo
- #        src=ipa.repo
- #
 - name: install ipa packages
   yum: name={{ item }} state=present
   with_items:
@@ -55,8 +29,16 @@
   args:
     creates: /etc/httpd/alias/kra-agent.pem
 
+- name: enable firewalld
+  service: enabled=yes
+           state=started
+           name=firewalld
+
 - name: Open Firewall for services
-  firewalld: service={{ item }} permanent=true state=enabled
+  firewalld: service={{ item }}
+             permanent=true
+             state=enabled
+             immediate=yes
   with_items:
     - http
     - https
@@ -68,12 +50,13 @@
     - ntp
 
 - name: Open Firewall for ports
-  firewalld: port={{ item }} permanent=true state=enabled
+  firewalld: port={{ item }}
+             permanent=true
+             state=enabled
+             immediate=yes
   with_items:
     - 9180/tcp
     - 9443-9446/tcp
     - 9701/tcp
     - 7389/tcp
     - 8443/tcp
-  notify: restart firewalld
-

@@ -1,0 +1,107 @@
+---
+- name: python-keystoneclient-kerberos
+  yum: name=python-keystoneclient-kerberos
+       state=installed
+
+- name: nova v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/nova/nova.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: nova
+    password: "{{ nova_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart nova-api
+
+- name: glance-api v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/glance/glance-api.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: glance
+    password: "{{ glance_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart glance-api
+
+- name: glance-registry v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/glance/glance-registry.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: glance
+    password: "{{ glance_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart glance-registry
+
+- name: cinder v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/cinder/cinder.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: cinder
+    password: "{{ cinder_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart cinder-api
+
+- name: neutron v3 authentication
+  ini_file: section=keystone_authtoken
+            dest=/etc/neutron/neutron.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: neutron
+    password: "{{ neutron_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart neutron-api
+
+- name: nova/neutron v3 authentication
+  ini_file: section=neutron
+            dest=/etc/nova/nova.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    auth_plugin: v3password
+    auth_url: "https://{{ hostname }}:5000/v3"
+    username: neutron
+    password: "{{ neutron_password }}"
+    project_name: services
+    user_domain_id: default
+    project_domain_id: default
+  notify:
+    - restart nova-api
+
+- name: remove nova v2 overrides
+  ini_file: dest=/usr/share/nova/nova-dist.conf
+            section=keystone_authtoken
+            state=absent
+  notify:
+    - restart nova-api
