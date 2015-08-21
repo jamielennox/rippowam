@@ -18,42 +18,52 @@
   register: os_roles
 
 - name: create barbican service user
-  command: openstack user create --name=barbican --pass=password --email=barbican@example.com
+  command: openstack user create  --password=password --email=barbican@example.com barbican
   environment: os_env
   when: '"\"barbican\"" not in os_users.stdout_lines'
 
-- name: create service project
-  command: openstack project create --name=service --description="Service Tenant"
+- name: create services project
+  command: openstack project create --name=service--description="Tenant for Opnestack services"
   environment: os_env
-  when: '"\"service\"" not in os_projects.stdout_lines'
+  when: '"\"services\"" not in os_projects.stdout_lines'
 
 - name: add admin role for barbican service user
-  command: openstack role add --user=barbican --project=service admin
+  command: openstack role add --user=barbican --project=services admin
   environment: os_env
 
 - name: add creator role
-  command: openstack role add creator
+  command: openstack role create creator
   environment: os_env
   when: "\"creator\"" not in os_roles.stdout_lines'
 
 - name: add observer role
-  command: openstack role add observer
+  command: openstack role create observer
   environment: os_env
   when: "\"observer\"" not in os_roles.stdout_lines'
 
 - name: add audit role
-  command: openstack role add audit
+  command: openstack role create audit
   environment: os_env
   when: "\"audit\"" not in os_roles.stdout_lines'
 
 - name: add barbican service
-  command: openstack service create --name=barbican --description="Barbican Key Management Service" key-manager
+  command: >
+    openstack service create
+      --name=barbican
+      --description="Barbican Key Management Service"
+      key-manager
   environment: os_env
 
-- name: add barbican endpoint
-  command: openstack endpoint create \
-           --region RegionOne \
-           --publicurl "http://{{ hostname }}:9311" \
-           --internalurl "http://{{ hostname }}:9311" \
-           --service_id
+- name: add barbican public endpoint
+  command: >
+    openstack endpoint create
+      --region RegionOne
+      barbican public http://{{ hostname }}:9311
+  environment: os_env
+
+- name: add barbican internal endpoint
+  command: >
+    openstack endpoint create
+      --region RegionOne
+      barbican internal http://{{ hostname }}:9311
   environment: os_env

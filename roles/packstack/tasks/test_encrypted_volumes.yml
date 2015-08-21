@@ -1,8 +1,11 @@
 - name: enable barbican key manager in nova
   ini_file: dest=/etc/nova/nova.conf
             section=keymgr
-            option=api_class
-            value="nova.keymgr.barbican.BarbicanKeyManager"
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    api_class: "nova.keymgr.barbican.BarbicanKeyManager"
+    encryption_auth_url: "https://{{ hostname }}:5000/v3"
 
 - name: enable barbican key manager in cinder
   ini_file: dest=/etc/cinder/cinder.conf
@@ -20,9 +23,18 @@
   command: openstack token issue
   environment: os_env
 
+- name: list volume types
+  command: openstack volume type list -c Name -f csv
+  register: os_volume_type_list
+
+- name: list volumes
+  command: openstack volume list -c "Display Name" -f csv
+  register: os_volume_list
+
 - name: create volume type LUKS
   command: openstack volume type create LUKS
   environment: os_env
+  when: '"\"LUKS\" not in os_volume_type_list.stdout_lines'
 
   name: create volume encryption type for LUKS
   command: >
@@ -36,8 +48,11 @@
 - name: create encrypted volume
   command: >
     openstack volume create
-      --display-name 'encrypted volume'
-      --type LUKS 1
+      --size 1 
+      --type LUKS 
+      encrypted_volume
+  environment: os_env
+  when: '"\"encrypted_volume\" not in os_volume_list.stdout_lines'
 
 - name: create new server
   command: >
@@ -48,4 +63,4 @@
 
 - name: attach encrypted volume to server
   command: >
-    openstack volume-attach vm-test db50b71c-bf97-47cb-a5cf-b4b43a0edab6 /dev/vdc
+    openstack server add volume --device /dev/vdc testvm encrypted_volume
