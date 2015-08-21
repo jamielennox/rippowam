@@ -97,7 +97,7 @@
     user_domain_id: default
     project_domain_id: default
   notify:
-    - restart nova-api
+    - restart nova-compute
 
 - name: remove nova v2 overrides
   ini_file: dest=/usr/share/nova/nova-dist.conf
