@@ -81,26 +81,31 @@
   command:  openstack user list -c Name -f csv
   environment: os_env
   register: os_users
+  changed_when: false
 
 - name: list projects
   command:  openstack project list -c Name -f csv
   environment: os_env
   register: os_projects
+  changed_when: false
 
-  name: list roles
+- name: list roles
   command:  openstack role list -c Name -f csv
   environment: os_env
   register: os_roles
+  changed_when: false
 
-  name: list services
+- name: list services
   command:  openstack service list -c Name -f csv
   environment: os_env
   register: os_services
+  changed_when: false
 
-  name: list endpoints
+- name: list endpoints
   command:  openstack endpoint list -c "Service Name" -c "Interface" -f csv
   environment: os_env
   register: os_endpoints
+  changed_when: false
 
 - name: create barbican service user
   command: openstack user create  --password=orange --email=barbican@example.com barbican

@@ -3,6 +3,10 @@
   sudo: yes
   service: name=openstack-nova-api state=restarted
 
+- name: restart nova-compute
+  sudo: yes
+  service: name=openstack-nova-compute state=restarted
+
 - name: restart glance-api
   sudo: yes
   service: name=openstack-glance-api state=restarted

@@ -10,8 +10,11 @@
 - name: enable barbican key manager in cinder
   ini_file: dest=/etc/cinder/cinder.conf
             section=keymgr
-            option=api_class
-            value="cinder.keymgr.barbican.BarbicanKeyManager"
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    api_class: "cinder.keymgr.barbican.BarbicanKeyManager"
+    encryption_auth_url: "https://{{ hostname }}:5000/v3"
 
 - name: restart nova
   service: name=openstack-nova-api state=restarted
@@ -25,18 +28,22 @@
 
 - name: list volume types
   command: openstack volume type list -c Name -f csv
+  environment: os_env
   register: os_volume_type_list
+  changed_when: false
 
 - name: list volumes
   command: openstack volume list -c "Display Name" -f csv
+  environment: os_env
   register: os_volume_list
+  changed_when: false
 
 - name: create volume type LUKS
   command: openstack volume type create LUKS
   environment: os_env
-  when: '"\"LUKS\" not in os_volume_type_list.stdout_lines'
+  when: '"\"LUKS\"" not in os_volume_type_list.stdout_lines'
 
-  name: create volume encryption type for LUKS
+- name: create volume encryption type for LUKS
   command: >
     cinder encryption-type-create
       --cipher aes-xts-plain64
@@ -52,15 +59,18 @@
       --type LUKS 
       encrypted_volume
   environment: os_env
-  when: '"\"encrypted_volume\" not in os_volume_list.stdout_lines'
+  when: '"\"encrypted_volume\"" not in os_volume_list.stdout_lines'
 
-- name: create new server
-  command: >
-    openstack server create
-      --flavor m1.tiny
-      --image cirros-0.3.1-x86_64-disk
-      vm-test
+#- name: create new server
+#  command: >
+#    openstack server create
+#      --flavor 1
+#      --image os_image_id
+#      --nic "net-id={{ os_net_id }}"
+#      vm-test
+#  environment: os_env
 
-- name: attach encrypted volume to server
-  command: >
-    openstack server add volume --device /dev/vdc testvm encrypted_volume
+#- name: attach encrypted volume to server
+#  command: >
+#    openstack server add volume --device /dev/vdc testvm encrypted_volume
+#  environment: os_env
