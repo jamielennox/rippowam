@@ -38,6 +38,12 @@
   register: os_volume_list
   changed_when: false
 
+- name: list encrypted volume types
+  shell: cinder encryption-type-list |awk '{print $4}'
+  environment: os_env_v2
+  register: os_encrypted_volume_type_list
+  changed_when: false
+
 - name: create volume type LUKS
   command: openstack volume type create LUKS
   environment: os_env
@@ -51,6 +57,7 @@
       LUKS
       nova.volume.encryptors.luks.LuksEncryptor
   environment: os_env_v2
+  when: '"nova.volume.encryptors.luks.LuksEncryptor" not in os_encrypted_volume_type_list.stdout_lines'
 
 - name: create encrypted volume
   command: >
