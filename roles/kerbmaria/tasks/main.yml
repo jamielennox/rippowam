@@ -1,5 +1,7 @@
 ---
 - name: install kerberized mariadb repo
+  tags:
+    - mariadb
   copy: src=rharwood-mariadb-epel-7.repo
         dest=/etc/yum.repos.d/
 
@@ -8,10 +10,14 @@
         state=latest
 
 - name: kinit
+  tags:
+    - mariadb
   shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
   changed_when: false
 
 - name: check for MySQL Service
+  tags:
+    - mariadb
   command:   >
     curl -s
     -H Referer:https://ipa.{{ ipa_domain }}/ipa
@@ -23,6 +29,8 @@
   register: ipa_service_show_mysql_result
 
 - name: add maria service
+  tags:
+    - mariadb
   command: >
     curl -s
     -H Referer:https://ipa.{{ ipa_domain }}/ipa
@@ -34,6 +42,8 @@
   register: ipa_service_create_mysql_result
 
 - name: Get Keytab
+  tags:
+    - mariadb
   command:  >
     ipa-getkeytab
     -s ipa.{{ ipa_domain }}
@@ -45,6 +55,8 @@
     - restart mariadb
 
 - name: set keytab permissions
+  tags:
+    - mariadb
   file: owner=mysql
         group=mysql
         mode=0600
@@ -53,20 +65,28 @@
     - restart mariadb
 
 - name: check for kerberos module
+  tags:
+    - mariadb
   command: mysql keystone -u root  --execute="SHOW PLUGINS;"
   register: mysql_modules
-  changed: false
+  changed_when: false
 
 - name: install kerberos module
+  tags:
+    - mariadb
   command: mysql keystone -u root --execute="INSTALL PLUGIN kerberos soname 'kerberos';"
   when: "'kerberos' not in mysql_modules.stdout"
 
 - name: install server.cnf
+  tags:
+    - mariadb
   template: src=server.cnf
             dest=/etc/my.cnf.d/server.cnf
   notify:
     - restart mariadb
 
 - name: kdestroy
+  tags:
+    - mariadb
   shell: kdestroy
-  changed: false
+  changed_when: false
