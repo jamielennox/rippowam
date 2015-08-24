@@ -1,0 +1,83 @@
+- name: enable barbican key manager in nova
+  ini_file: dest=/etc/nova/nova.conf
+            section=keymgr
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    api_class: "nova.keymgr.barbican.BarbicanKeyManager"
+    encryption_auth_url: "https://{{ hostname }}:5000/v3"
+
+- name: enable barbican key manager in cinder
+  ini_file: dest=/etc/cinder/cinder.conf
+            section=keymgr
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    api_class: "cinder.keymgr.barbican.BarbicanKeyManager"
+    encryption_auth_url: "https://{{ hostname }}:5000/v3"
+
+- name: restart nova
+  service: name=openstack-nova-api state=restarted
+
+- name: restart cinder
+  service: name=openstack-cinder-api state=restarted
+
+- name: get keystone token
+  command: openstack token issue
+  environment: os_env
+
+- name: list volume types
+  command: openstack volume type list -c Name -f csv
+  environment: os_env
+  register: os_volume_type_list
+  changed_when: false
+
+- name: list volumes
+  command: openstack volume list -c "Display Name" -f csv
+  environment: os_env
+  register: os_volume_list
+  changed_when: false
+
+- name: list encrypted volume types
+  shell: cinder encryption-type-list |awk '{print $4}'
+  environment: os_env_v2
+  register: os_encrypted_volume_type_list
+  changed_when: false
+
+- name: create volume type LUKS
+  command: openstack volume type create LUKS
+  environment: os_env
+  when: '"\"LUKS\"" not in os_volume_type_list.stdout_lines'
+
+- name: create volume encryption type for LUKS
+  command: >
+    cinder encryption-type-create
+      --cipher aes-xts-plain64
+      --key_size 512  --control_location front-end
+      LUKS
+      nova.volume.encryptors.luks.LuksEncryptor
+  environment: os_env_v2
+  when: '"nova.volume.encryptors.luks.LuksEncryptor" not in os_encrypted_volume_type_list.stdout_lines'
+
+- name: create encrypted volume
+  command: >
+    openstack volume create
+      --size 1 
+      --type LUKS 
+      encrypted_volume
+  environment: os_env
+  when: '"\"encrypted_volume\"" not in os_volume_list.stdout_lines'
+
+#- name: create new server
+#  command: >
+#    openstack server create
+#      --flavor 1
+#      --image os_image_id
+#      --nic "net-id={{ os_net_id }}"
+#      vm-test
+#  environment: os_env
+
+#- name: attach encrypted volume to server
+#  command: >
+#    openstack server add volume --device /dev/vdc testvm encrypted_volume
+#  environment: os_env

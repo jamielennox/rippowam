@@ -80,6 +80,12 @@
     project_name: services
     user_domain_id: default
     project_domain_id: default
+
+- name: neutron v3 authentication continued
+  ini_file: section=DEFAULT
+            dest=/etc/neutron/neutron.conf
+            option=nova_admin_auth_url
+            value="https://{{ hostname }}:5000/v3"
   notify:
     - restart neutron-api
 
@@ -90,6 +96,7 @@
             value={{ item.value }}
   with_dict:
     auth_plugin: v3password
+    admin_auth_url: "https://{{ hostname }}:5000/v3"
     auth_url: "https://{{ hostname }}:5000/v3"
     username: neutron
     password: "{{ neutron_password }}"

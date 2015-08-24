@@ -22,6 +22,13 @@
   args:
     creates: /etc/ipa/ca.crt
 
+- name: install ipa kra
+  command: >
+    ipa-kra-install -U
+    -p {{ ipa_dm_password }}
+  args:
+    creates: /etc/httpd/alias/kra-agent.pem
+
 - name: enable firewalld
   service: enabled=yes
            state=started
@@ -52,3 +59,4 @@
     - 9443-9446/tcp
     - 9701/tcp
     - 7389/tcp
+    - 8443/tcp

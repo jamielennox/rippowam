@@ -1,0 +1,163 @@
+---
+- name: install barbican repo
+  register: barbicanrepo
+  copy: src=barbican.repo
+        dest=/etc/yum.repos.d/barbican.repo
+
+- name: install barbican packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - openstack-barbican
+    - openstack-barbican-api
+
+- name: install barbican client package
+  yum: name={{ item }} state=installed
+  with_items:
+    - python-barbicanclient
+
+- name: set write permission for barbican database
+  file: path=/var/lib/barbican state=directory mode=0757
+
+- name: set ownership of /etc/barbican
+  file: path=/etc/barbican state=directory owner=barbican group=barbican
+
+- name: install pki-base for Dogtag client libraries
+  yum: name=pki-base state=installed
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+- name: get kra agent pem file
+  command: scp admin@ipa.{{ ipa_domain }}:/etc/httpd/alias/kra-agent.pem /etc/barbican
+  args:
+    creates: /etc/barbican/kra-agent.pem
+
+- name: configure dogtag_plugin in barbican-api.conf
+  ini_file: dest=/etc/barbican/barbican-api.conf
+            section=dogtag_plugin
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    dogtag_host: "ipa.{{ ipa_domain }}"
+    dogtag_port: "8443"
+    pem_path: "/etc/barbican/kra-agent.pem"
+
+- name: enable dogtag secret store in barbican-api.conf
+  ini_file: dest=/etc/barbican/barbican-api.conf
+            section=secretstore
+            option=enabled_secretstore_plugins
+            value="dogtag_crypto"
+
+- name: enable dogtag secret cert plugin in barbican-api.conf
+  ini_file: dest=/etc/barbican/barbican-api.conf
+            section=certificate
+            option=enabled_certificate_plugins
+            value="dogtag"
+
+- name: configure barbican-api-paste to talk to keystone
+  ini_file: dest=/etc/barbican/barbican-api-paste.ini
+            section=pipeline:barbican_api
+            option=pipeline
+            value="keystone_authtoken context apiapp"
+
+- name: configure barbican-api-paste to talk to keystone
+  ini_file: dest=/etc/barbican/barbican-api-paste.ini
+            section=filter:keystone_authtoken
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    identity_uri: "https://{{ hostname }}:35357"
+    admin_tenant_name: "services"
+
+- name: restart barbican server
+  service: name=openstack-barbican-api state=restarted
+
+- name: get keystone token
+  command: openstack token issue
+  environment: os_env
+
+- name: list users
+  command:  openstack user list -c Name -f csv
+  environment: os_env
+  register: os_users
+  changed_when: false
+
+- name: list projects
+  command:  openstack project list -c Name -f csv
+  environment: os_env
+  register: os_projects
+  changed_when: false
+
+- name: list roles
+  command:  openstack role list -c Name -f csv
+  environment: os_env
+  register: os_roles
+  changed_when: false
+
+- name: list services
+  command:  openstack service list -c Name -f csv
+  environment: os_env
+  register: os_services
+  changed_when: false
+
+- name: list endpoints
+  command:  openstack endpoint list -c "Service Name" -c "Interface" -f csv
+  environment: os_env
+  register: os_endpoints
+  changed_when: false
+
+- name: create barbican service user
+  command: openstack user create  --password=orange --email=barbican@example.com barbican
+  environment: os_env
+  when: '"\"barbican\"" not in os_users.stdout_lines'
+
+- name: create services project
+  command: openstack project create --name=service --description="Tenant for Openstack services"
+  environment: os_env
+  when: '"\"services\"" not in os_projects.stdout_lines'
+
+- name: add admin role for barbican service user
+  command: openstack role add --user=barbican --project=services admin
+  environment: os_env
+
+- name: add creator role
+  command: openstack role create creator
+  environment: os_env
+  when: '"\"creator\"" not in os_roles.stdout_lines'
+
+- name: add observer role
+  command: openstack role create observer
+  environment: os_env
+  when: '"\"observer\"" not in os_roles.stdout_lines'
+
+- name: add audit role
+  command: openstack role create audit
+  environment: os_env
+  when: '"\"audit\"" not in os_roles.stdout_lines'
+
+- name: add barbican service
+  command: >
+    openstack service create
+      --name=barbican
+      --description="Barbican Key Management Service"
+      key-manager
+  environment: os_env
+  when: '"\"barbican\"" not in os_services.stdout_lines'
+
+- name: add barbican public endpoint
+  command: >
+    openstack endpoint create
+      --region RegionOne
+      barbican public http://{{ hostname }}:9311
+  environment: os_env
+  when: '"\"barbican\",\"public\"" not in os_endpoints.stdout_lines'
+
+- name: add barbican internal endpoint
+  command: >
+    openstack endpoint create
+      --region RegionOne
+      barbican internal http://{{ hostname }}:9311
+  environment: os_env
+  when: '"\"barbican\",\"internal\"" not in os_endpoints.stdout_lines'
+
