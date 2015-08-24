@@ -1,6 +1,5 @@
 ---
 - name: install barbican repo
-  register: barbicanrepo
   copy: src=barbican.repo
         dest=/etc/yum.repos.d/barbican.repo
 
@@ -23,15 +22,6 @@
 
 - name: install pki-base for Dogtag client libraries
   yum: name=pki-base state=installed
-
-- name: kinit
-  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
-  changed_when: false
-
-- name: get kra agent pem file
-  command: scp admin@ipa.{{ ipa_domain }}:/etc/httpd/alias/kra-agent.pem /etc/barbican
-  args:
-    creates: /etc/barbican/kra-agent.pem
 
 - name: configure dogtag_plugin in barbican-api.conf
   ini_file: dest=/etc/barbican/barbican-api.conf
@@ -73,38 +63,10 @@
 - name: restart barbican server
   service: name=openstack-barbican-api state=restarted
 
-- name: get keystone token
-  command: openstack token issue
-  environment: os_env
-
 - name: list users
   command:  openstack user list -c Name -f csv
   environment: os_env
   register: os_users
-  changed_when: false
-
-- name: list projects
-  command:  openstack project list -c Name -f csv
-  environment: os_env
-  register: os_projects
-  changed_when: false
-
-- name: list roles
-  command:  openstack role list -c Name -f csv
-  environment: os_env
-  register: os_roles
-  changed_when: false
-
-- name: list services
-  command:  openstack service list -c Name -f csv
-  environment: os_env
-  register: os_services
-  changed_when: false
-
-- name: list endpoints
-  command:  openstack endpoint list -c "Service Name" -c "Interface" -f csv
-  environment: os_env
-  register: os_endpoints
   changed_when: false
 
 - name: create barbican service user
@@ -112,29 +74,14 @@
   environment: os_env
   when: '"\"barbican\"" not in os_users.stdout_lines'
 
-- name: create services project
-  command: openstack project create --name=service --description="Tenant for Openstack services"
-  environment: os_env
-  when: '"\"services\"" not in os_projects.stdout_lines'
+# - name: create services project
+#   command: openstack project create --name=service --description="Tenant for Openstack services"
+#   environment: os_env
+#   when: '"\"services\"" not in os_projects.stdout_lines'
 
 - name: add admin role for barbican service user
   command: openstack role add --user=barbican --project=services admin
   environment: os_env
-
-- name: add creator role
-  command: openstack role create creator
-  environment: os_env
-  when: '"\"creator\"" not in os_roles.stdout_lines'
-
-- name: add observer role
-  command: openstack role create observer
-  environment: os_env
-  when: '"\"observer\"" not in os_roles.stdout_lines'
-
-- name: add audit role
-  command: openstack role create audit
-  environment: os_env
-  when: '"\"audit\"" not in os_roles.stdout_lines'
 
 - name: add barbican service
   command: >
@@ -160,4 +107,3 @@
       barbican internal http://{{ hostname }}:9311
   environment: os_env
   when: '"\"barbican\",\"internal\"" not in os_endpoints.stdout_lines'
-

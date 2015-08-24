@@ -6,6 +6,8 @@
   with_dict:
     api_class: "nova.keymgr.barbican.BarbicanKeyManager"
     encryption_auth_url: "https://{{ hostname }}:5000/v3"
+  notify:
+    - restart nova-api
 
 - name: enable barbican key manager in cinder
   ini_file: dest=/etc/cinder/cinder.conf
@@ -15,16 +17,8 @@
   with_dict:
     api_class: "cinder.keymgr.barbican.BarbicanKeyManager"
     encryption_auth_url: "https://{{ hostname }}:5000/v3"
-
-- name: restart nova
-  service: name=openstack-nova-api state=restarted
-
-- name: restart cinder
-  service: name=openstack-cinder-api state=restarted
-
-- name: get keystone token
-  command: openstack token issue
-  environment: os_env
+  notify:
+    - restart cinder-api
 
 - name: list volume types
   command: openstack volume type list -c Name -f csv
@@ -62,8 +56,8 @@
 - name: create encrypted volume
   command: >
     openstack volume create
-      --size 1 
-      --type LUKS 
+      --size 1
+      --type LUKS
       encrypted_volume
   environment: os_env
   when: '"\"encrypted_volume\"" not in os_volume_list.stdout_lines'

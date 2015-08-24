@@ -1,36 +1,56 @@
 [
-     {
-         "local": [
-             {
-                 "user": {
-                     "name": "{0}",
-                     "id": "{0}",
-                      "domain": {"name": "Default"}
-                 }
-             }
-         ],
-         "remote": [
-             {
-                 "type": "REMOTE_USER"
-             }
-         ]
-     },
+    {
+        "local": [
+            {
+                "user": {
+                    "name": "{0}",
+                    "id": "{0}",
+                    "domain": {"name": "Default"}
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "REMOTE_USER"
+            }
+        ]
+    },
 
-     {
-         "local": [
-             {
-                 "groups": "{0}",
-                 "domain": {
-                     "name": "Default"
-                 }
-             }
-         ],
-         "remote": [
-             {
-                 "type": "REMOTE_USER_GROUPS",
-                 "blacklist": []
-             }
-         ]
-     }
- ]
+    {
+        "local": [
+            {
+                "groups": "{0}",
+                "domain": {
+                    "name": "Default"
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "REMOTE_USER_GROUPS",
+                "blacklist": []
+            }
+        ]
+    },
 
+    {
+        "local": [
+            {
+                "group": {
+                    "name": "services",
+                    "domain": {
+                        "name": "Default"
+                    }
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "GSS_NAME",
+                "any_one_of": [
+                    "glance/openstack.jamielennox.test@JAMIELENNOX.TEST"
+                ]
+            }
+        ]
+    }
+]

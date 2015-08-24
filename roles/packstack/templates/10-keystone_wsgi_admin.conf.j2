@@ -17,10 +17,10 @@
     ServerSignature Off
     CustomLog "/var/log/httpd/keystone_wsgi_admin_access.log" combined
 
+    Include "/etc/httpd/conf/keystone-ssl.conf"
+    Include "/etc/httpd/conf/keystone-federation.conf"
+
     WSGIDaemonProcess keystone_admin display-name=keystone-admin group=keystone processes=1 threads=2 user=keystone
     WSGIProcessGroup keystone_admin
     WSGIScriptAlias / "/var/www/cgi-bin/keystone/admin"
-
-    Include "/etc/httpd/conf/keystone-ssl.conf"
-    Include "/etc/httpd/conf/keystone-federation.conf"
 </VirtualHost>

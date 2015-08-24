@@ -4,12 +4,14 @@
 - name: Add local service user
   user: createhome=no
         name={{ item }}
+        group={{ item }}
         home=/var/lib/{{ item }}
   with_items:
     - nova
     - glance
     - cinder
     - neutron
+    - barbican
   register: packstack_users
 
 - name: kinit
@@ -48,6 +50,11 @@
         owner={{ item.name }}
         group={{ item.name }}
   with_items: packstack_users.results
+
+- name: get kra agent pem file
+  command: scp admin@ipa.{{ ipa_domain }}:/etc/httpd/alias/kra-agent.pem /etc/barbican
+  args:
+    creates: /etc/barbican/kra-agent.pem
 
 - name: kdestroy
   command: kdestroy
