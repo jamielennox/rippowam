@@ -1,0 +1,3 @@
+[server]
+kerberos_keytab_path=/var/lib/mysql/mysql.keytab
+kerberos_principal_name={{ mysql_principal }}

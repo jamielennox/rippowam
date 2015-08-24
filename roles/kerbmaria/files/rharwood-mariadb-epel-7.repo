@@ -1,0 +1,8 @@
+[rharwood-mariadb]
+name=Copr repo for mariadb owned by rharwood
+baseurl=https://copr-be.cloud.fedoraproject.org/results/rharwood/mariadb/epel-7-$basearch/
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/rharwood/mariadb/pubkey.gpg
+enabled=1
+enabled_metadata=1

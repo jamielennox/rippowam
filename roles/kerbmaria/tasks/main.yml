@@ -1,15 +1,15 @@
 ---
-
 - name: install kerberized mariadb repo
-  get_url: url=https://copr.fedoraproject.org/coprs/rharwood/mariadb/repo/epel-7/rharwood-mariadb-epel-7.repo dest=/etc/yum.repos.d/
+  copy: src=rharwood-mariadb-epel-7.repo
+        dest=/etc/yum.repos.d/
 
 - name: upgrade to kerberized mariadb
-  yum:  name=mariadb-galera-debuginfo,mariadb-galera-server,ipa-admintools state=latest
+  yum:  name=mariadb-galera-debuginfo,mariadb-galera-server,ipa-admintools
+        state=latest
 
 - name: kinit
   shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
   changed_when: false
-
 
 - name: check for MySQL Service
   command:   >
@@ -22,10 +22,6 @@
     -X POST https://ipa.{{ ipa_domain }}/ipa/json
   register: ipa_service_show_mysql_result
 
-- set_fact:
-     ipa_service_show_mysql: "{{ ipa_service_show_mysql_result.stdout|from_json }}"
-
-
 - name: add maria service
   command: >
     curl -s
@@ -35,10 +31,7 @@
     --negotiate -u ":"
     -d  '{"method":"service_add","params":[["{{ mysql_principal }}"],{}],"id":0}'
     -X POST https://ipa.{{ ipa_domain }}/ipa/json
-#  when: ipa_service_show_mysql.error.name is defined
   register: ipa_service_create_mysql_result
-
-- debug: var=ipa_service_create_mysql_result
 
 - name: Get Keytab
   command:  >
@@ -48,41 +41,32 @@
     -p "{{ mysql_principal }}"
   args:
     creates: /var/lib/mysql/mysql.keytab
+  notify:
+    - restart mariadb
 
-- name: Set Keytab ownership
-  command: chown mysql:mysql  /var/lib/mysql/mysql.keytab
-
-- name: Set Keytab permissions
-  command: chmod 600 /var/lib/mysql/mysql.keytab
-
-- name: restart mariadb
-  service: name=mariadb state=restarted
+- name: set keytab permissions
+  file: owner=mysql
+        group=mysql
+        mode=0600
+        path=/var/lib/mysql/mysql.keytab
+  notify:
+    - restart mariadb
 
 - name: check for kerberos module
   command: mysql keystone -u root  --execute="SHOW PLUGINS;"
   register: mysql_modules
+  changed: false
 
 - name: install kerberos module
   command: mysql keystone -u root --execute="INSTALL PLUGIN kerberos soname 'kerberos';"
   when: "'kerberos' not in mysql_modules.stdout"
 
-- name:  create empty server.cnf
-  command: touch /etc/my.cnf.d/server.cnf
-  args:
-    creates: /etc/my.cnf.d/server.cnf
-
-- name: set mysql principal
-  ini_file: dest=/etc/my.cnf.d/server.cnf
-            section=server
-            option=kerberos_principal_name
-            value="{{ mysql_principal }}"
-
-- name: set mysql keytab
-  ini_file: dest=/etc/my.cnf.d/server.cnf section=server option=kerberos_keytab_path value=/var/lib/mysql/mysql.keytab
-
-- name: restart mariadb
-  service: name=mariadb state=restarted
-
+- name: install server.cnf
+  template: src=server.cnf
+            dest=/etc/my.cnf.d/server.cnf
+  notify:
+    - restart mariadb
 
 - name: kdestroy
   shell: kdestroy
+  changed: false
