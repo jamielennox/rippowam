@@ -15,31 +15,10 @@
   shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
   changed_when: false
 
-- name: check for MySQL Service
+- name: MySQL service
   tags:
     - mariadb
-  command:   >
-    curl -s
-    -H Referer:https://ipa.{{ ipa_domain }}/ipa
-    -H "Content-Type:application/json"
-    -H "Accept:applicaton/json"
-    --negotiate -u ":"
-    -d  '{"method":"service_show","params":[["{{ mysql_principal }}"],{}],"id":0}'
-    -X POST https://ipa.{{ ipa_domain }}/ipa/json
-  register: ipa_service_show_mysql_result
-
-- name: add maria service
-  tags:
-    - mariadb
-  command: >
-    curl -s
-    -H Referer:https://ipa.{{ ipa_domain }}/ipa
-    -H "Content-Type:application/json"
-    -H "Accept:applicaton/json"
-    --negotiate -u ":"
-    -d  '{"method":"service_add","params":[["{{ mysql_principal }}"],{}],"id":0}'
-    -X POST https://ipa.{{ ipa_domain }}/ipa/json
-  register: ipa_service_create_mysql_result
+  ipaservice: principal={{ mysql_principal }}
 
 - name: Get Keytab
   tags:
