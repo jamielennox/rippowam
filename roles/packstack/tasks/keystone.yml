@@ -6,6 +6,8 @@
     - restart httpd
 
 - name: Apache modules for SSSD
+  tags:
+    - ipsilon
   yum: name=mod_auth_gssapi,mod_lookup_identity,mod_auth_mellon,ipsilon-client
        state=present
 
@@ -14,6 +16,8 @@
         dest=/etc/httpd/conf.modules.d/55-lookup_identity.conf
 
 - name: enable apache identity modules
+  tags:
+    - ipsilon
   file: state=link
         src=/etc/httpd/conf.modules.d/{{ item }}.conf
         dest=/etc/httpd/conf.d/{{ item }}.conf
@@ -25,6 +29,8 @@
     - restart httpd
 
 - name: Apache common config files
+  tags:
+    - ipsilon
   template: src={{ item }}.j2
             dest=/etc/httpd/conf/{{ item }}
   with_items:
@@ -34,6 +40,8 @@
     - restart httpd
 
 - name: Keystone main conf
+  tags:
+    - ipsilon
   template: src={{ item }}.j2
             dest=/etc/httpd/conf.d/{{ item }}
   with_items:
@@ -42,38 +50,50 @@
   notify:
     - restart httpd
 
-- name: SAML2 config dir
+- name: SAML2 config dirs
+  tags:
+    - ipsilon
   file: state=directory
-        path=/etc/httpd/saml2
+        path=/etc/httpd/saml2/{{ item }}
         owner=apache
         mode=0750
+  with_items:
+    - ecp
+    - websso
 
 - name: Install Ipsilon
+  tags:
+    - ipsilon
   shell: >
     echo {{ ipa_admin_user_password }} | ipsilon-client-install
     --saml
     --saml-no-httpd
-    --saml-base /v3/auth/OS-FEDERATION/websso/saml2
-    --saml-sp /v3/auth/OS-FEDERATION/websso/saml2
+    --saml-base {{ item.value }}
+    --saml-sp {{ item.value }}
     --saml-idp-url https://ipa.{{ ipa_domain }}/idp
-    --saml-sp-logout /v3/auth/OS-FEDERATION/websso/saml2/logout
-    --saml-sp-post /v3/auth/OS-FEDERATION/websso/saml2/postResponse
-    --saml-sp-name openstack
-    --saml-auth /v3/auth/OS-FEDERATION/websso/saml2
+    --saml-sp-logout {{ item.value }}/logout
+    --saml-sp-post {{ item.value }}/postResponse
+    --saml-sp-name openstack{{ item.key }}
+    --saml-auth {{ item.value }}
     --admin-user admin
     --admin-password -
     --port 5000
   args:
-    creates: /etc/httpd/saml2/metadata.xml
-    chdir: /etc/httpd/saml2/
+    creates: /etc/httpd/saml2/{{ item.key }}/metadata.xml
+    chdir: /etc/httpd/saml2/{{ item.key }}/
   environment:
     # NOTE(jamielennox): This is ignored for now but should be used in place of
     # the echo above as soon as >1.0 comes out. That means can switch back to command instead of shell.
     IPSILON_ADMIN_PASSWORD: "{{ ipa_admin_user_password }}"
   notify:
     - restart httpd
+  with_dict:
+    ecp: /v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth
+    websso: /v3/auth/OS-FEDERATION/websso/saml2
 
 - name: Download IDP metadata
+  tags:
+    - ipsilon
   get_url: url=https://ipa.{{ ipa_domain }}/idp/saml2/metadata
            dest=/etc/httpd/saml2/idp-metadata.xml
   notify:
