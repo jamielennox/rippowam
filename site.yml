@@ -9,10 +9,8 @@
     - ipsilonserver
   vars:
     hostname: "{{ ansible_fqdn }}"
-    #ipa_realm: Set By Inventory
     ipa_admin_password: "{{ ipa_admin_user_password }}"
     ipa_dns_forwarder:  "{{ ipa_forwarder }}"
-    nightly_version: 20150817.n.2
 
 - hosts: openstack
   sudo: yes
@@ -26,11 +24,7 @@
     - kerbmaria
   vars:
     hostname: "{{ ansible_fqdn }}"
-    nightly_version: 20150817.n.2
     dns_search: "{{ ipa_domain }}"
     dns_nameservers:
       - "{{ nameserver }}"
-
-    #ipa_realm: Set By Inventory
-    #ipa_domain: Set By Inventory
     ipa_admin_password: "{{ipa_admin_user_password }}"
