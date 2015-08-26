@@ -8,14 +8,8 @@
             dest=/etc/nova/nova.conf
             option={{ item.key }}
             value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: nova
-    password: "{{ nova_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
+  with_dict: "{{ service_authtoken }}"
+
   notify:
     - restart nova-api
 
@@ -24,14 +18,7 @@
             dest=/etc/glance/glance-api.conf
             option={{ item.key }}
             value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: glance
-    password: "{{ glance_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
+  with_dict: "{{ service_authtoken }}"
   notify:
     - restart glance-api
 
@@ -40,14 +27,7 @@
             dest=/etc/glance/glance-registry.conf
             option={{ item.key }}
             value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: glance
-    password: "{{ glance_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
+  with_dict: "{{ service_authtoken }}"
   notify:
     - restart glance-registry
 
@@ -56,14 +36,7 @@
             dest=/etc/cinder/cinder.conf
             option={{ item.key }}
             value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: cinder
-    password: "{{ cinder_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
+  with_dict: "{{ service_authtoken }}"
   notify:
     - restart cinder-api
 
@@ -72,14 +45,9 @@
             dest=/etc/neutron/neutron.conf
             option={{ item.key }}
             value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: neutron
-    password: "{{ neutron_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
+  with_dict: "{{ service_authtoken }}"
+  notify:
+    - restart neutron-api
 
 - name: neutron v3 authentication continued
   ini_file: section=DEFAULT
@@ -94,15 +62,7 @@
             dest=/etc/nova/nova.conf
             option={{ item.key }}
             value={{ item.value }}
-  with_dict:
-    auth_plugin: v3password
-    admin_auth_url: "https://{{ hostname }}:5000/v3"
-    auth_url: "https://{{ hostname }}:5000/v3"
-    username: neutron
-    password: "{{ neutron_password }}"
-    project_name: services
-    user_domain_id: default
-    project_domain_id: default
+  with_dict: "{{ service_authtoken }}"
   notify:
     - restart nova-compute
 

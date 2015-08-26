@@ -23,3 +23,11 @@ os_env_v2:
   OS_IDENTITY_API_VERSION: 2
   OS_TENANT_NAME: admin
 
+service_authtoken:
+  auth_uri: "https://{{ hostname }}:5000"
+  auth_plugin: v3fedkerb
+  auth_url: "https://{{ hostname }}:5000/v3"
+  identity_provider: sssd
+  protocol: kerberos
+  project_name: services
+  project_domain_id: default
