@@ -6,15 +6,6 @@
 - include: ipa-pre-packstack.yml
 - include: packstack.yml
 - include: serviceauth.yml
-
-- name: install adminrc file
-  template: src=adminrc.j2
-            dest=~/adminrc
-
-- name: install demorc file
-  template: src=demorc.j2
-            dest=~/demorc
-
 - include: infopipe.yml
 - include: keystone.yml
 - include: horizon.yml
@@ -26,3 +17,12 @@
 - include: keystone-ipsilon.yml
 - include: barbican.yml
 - include: test-encrypted-volumes.yml
+
+- name: install accrc files
+  sudo: no
+  template: src={{ item }}.j2
+            dest=~/{{ item }}
+  with_items:
+    - adminrc
+    - demorc
+    - kerb-accrc
