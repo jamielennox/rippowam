@@ -1,7 +1,7 @@
 ---
 - name: copy rules file
-  copy: src=mapping_sssd.json
-        dest=/mapping_sssd.json
+  template: src=mapping_sssd.json.j2
+            dest=/mapping_sssd.json
 
 - name: SSSD identity provider
   command: openstack identity provider create --remote-id SSSD   sssd
