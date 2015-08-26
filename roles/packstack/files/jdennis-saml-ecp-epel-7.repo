@@ -1,0 +1,8 @@
+[jdennis-saml-ecp]
+name=Copr repo for saml-ecp owned by jdennis
+baseurl=https://copr-be.cloud.fedoraproject.org/results/jdennis/saml-ecp/epel-7-$basearch/
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/jdennis/saml-ecp/pubkey.gpg
+enabled=1
+enabled_metadata=1

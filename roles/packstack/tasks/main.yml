@@ -1,7 +1,10 @@
 ---
 - name: install hacks copr repo
-  copy: src=jamielennox-rippowam-updates-epel-7.repo
-        dest=/etc/yum.repos.d/jamielennox-rippowam-updates-epel-7.repo
+  copy: src={{ item }}
+        dest=/etc/yum.repos.d/{{ item }}
+  with_items:
+    - jamielennox-rippowam-updates-epel-7.repo
+    - jdennis-saml-ecp-epel-7.repo
 
 - include: ipa-pre-packstack.yml
 - include: packstack.yml
