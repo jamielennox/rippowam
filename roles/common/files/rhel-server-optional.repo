@@ -1,5 +1,0 @@
-[rhel-server-optional]
-name=RHEL 7.2 Server Optional
-baseurl=http://download.devel.redhat.com/nightly/latest-RHEL-7/compose/Server-optional/$basearch/os
-gpgcheck=0
-enabled=1

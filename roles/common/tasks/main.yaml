@@ -7,7 +7,6 @@
         dest=/etc/yum.repos.d/{{ item }}
   with_items:
     - rhel-server.repo
-    - rhel-server-optional.repo
 
 - name: upgrade all packages
   yum: name=* state=latest
