@@ -28,7 +28,7 @@
         "remote": [
             {
                 "type": "REMOTE_USER_GROUPS",
-                "blacklist": []
+                "whitelist": ["ipausers"]
             }
         ]
     },
@@ -48,7 +48,11 @@
             {
                 "type": "GSS_NAME",
                 "any_one_of": [
-                    "glance/openstack.jamielennox.test@JAMIELENNOX.TEST"
+                    "glance/openstack.{{ ipa_domain }}@{{ ipa_realm }}",
+                    "cinder/openstack.{{ ipa_domain }}@{{ ipa_realm }}",
+                    "nova/openstack.{{ ipa_domain }}@{{ ipa_realm }}",
+                    "barbican/openstack.{{ ipa_domain }}@{{ ipa_realm }}",
+                    "neutron/openstack.{{ ipa_domain }}@{{ ipa_realm }}"
                 ]
             }
         ]
