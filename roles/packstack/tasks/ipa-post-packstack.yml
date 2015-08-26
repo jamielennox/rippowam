@@ -4,7 +4,6 @@
 - name: Add local service user
   user: createhome=no
         name={{ item }}
-        group={{ item }}
         home=/var/lib/{{ item }}
   with_items:
     - nova
@@ -24,7 +23,7 @@
 
 - name: Add service keytab directories
   file: state=directory
-        path="/var/lib/krb5/user/{{ item.uid }}"
+        path="/var/kerberos/krb5/user/{{ item.uid }}"
         mode=0700
         owner={{ item.name }}
         group={{ item.name }}
@@ -34,10 +33,10 @@
   command:  >
     ipa-getkeytab
     -s ipa.{{ ipa_domain }}
-    -k /var/lib/krb5/user/{{ item.uid }}/client.keytab
+    -k /var/kerberos/krb5/user/{{ item.uid }}/client.keytab
     -p {{ item.name }}/{{ hostname }}@{{ ipa_realm }}
   args:
-    creates: /var/lib/krb5/user/{{ item.uid }}/client.keytab
+    creates: /var/kerberos/krb5/user/{{ item.uid }}/client.keytab
   with_items: packstack_users.results
   notify:
     - restart cinder-api
@@ -45,7 +44,7 @@
     - restart nova-api
 
 - name: Change service user keytab ownership
-  file: path="/var/lib/krb5/user/{{ item.uid }}/client.keytab"
+  file: path="/var/kerberos/krb5/user/{{ item.uid }}/client.keytab"
         mode=0700
         owner={{ item.name }}
         group={{ item.name }}
