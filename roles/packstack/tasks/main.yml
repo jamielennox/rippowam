@@ -15,8 +15,8 @@
 - include: keystone-environment.yml
 - include: keystone-sssd.yml
 - include: keystone-ipsilon.yml
-- include: barbican.yml
-- include: test-encrypted-volumes.yml
+#- include: barbican.yml
+#- include: test-encrypted-volumes.yml
 
 - name: install accrc files
   sudo: no
