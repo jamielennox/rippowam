@@ -1,41 +1,61 @@
 ---
 - name: disable selinux
+  tags:
+    - common
   selinux: state=disabled
 
 - name: Install repos
+  tags:
+    - common
   copy: src="{{ item }}"
         dest=/etc/yum.repos.d/{{ item }}
   with_items:
     - rhel-server.repo
 
 - name: upgrade all packages
+  tags:
+    - common
   yum: name=* state=latest
 
 - name: Install packages
+  tags:
+    - common
   yum: name=rng-tools
 
 - name: patch rngd
+  tags:
+    - common
   copy: src=rngd.service dest=/etc/systemd/system/rngd.service
   register: rngd
 
 - name: reload systemd units
+  tags:
+    - common
   command: systemctl daemon-reload
   when: rngd.changed
 
 - name: Start the rngd service
+  tags:
+    - common
   service: name=rngd enabled=yes state=started
 
 - name: Add second ethernet interface
+  tags:
+    - common
   command: nmcli connection  add type ethernet ifname eth1  con-name ethernet-eth1
   when: not ansible_eth1.ipv4 is defined
 
 - name: Set up authorized_keys for the deploy user
+  tags:
+    - common
   authorized_key: user="{{ ansible_user_id }}"
                   key="{{ item }}"
   with_file:
     - public_keys/work.pub
 
 - name: tty-less sudo
+  tags:
+    - common
   sudo: yes
   lineinfile: dest=/etc/sudoers
               state=absent
@@ -43,5 +63,7 @@
               validate='visudo -cf %s'
 
 - name: Set server hostname
+  tags:
+    - common
   sudo: yes
   hostname: name={{ hostname }}
