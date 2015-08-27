@@ -11,6 +11,7 @@
         dest=/etc/yum.repos.d/{{ item }}
   with_items:
     - rhel-server.repo
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "7"
 
 - name: upgrade all packages
   tags:
@@ -20,7 +21,7 @@
 - name: Install packages
   tags:
     - common
-  yum: name=rng-tools
+  yum: name=rng-tools,NetworkManager
 
 - name: patch rngd
   tags:
@@ -38,6 +39,11 @@
   tags:
     - common
   service: name=rngd enabled=yes state=started
+
+- name: Start Network manager
+  tags:
+    - common
+  service: name=NetworkManager state=started enabled=yes
 
 - name: Add second ethernet interface
   tags:
