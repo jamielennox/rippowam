@@ -6,6 +6,7 @@
         name={{ item }}
         home=/var/lib/{{ item }}
   with_items:
+    - keystone  # used for mysql keytabs rather than token validation
     - nova
     - glance
     - cinder
@@ -42,6 +43,7 @@
     - restart cinder-api
     - restart glance-api
     - restart nova-api
+    - restart httpd
 
 - name: Change service user keytab ownership
   file: path="/var/kerberos/krb5/user/{{ item.uid }}/client.keytab"

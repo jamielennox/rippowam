@@ -1,12 +1,8 @@
 ---
-- name: install kerberized mariadb repo
+- name: upgrade to kerberized mariadb
   tags:
     - mariadb
-  copy: src=rharwood-mariadb-epel-7.repo
-        dest=/etc/yum.repos.d/
-
-- name: upgrade to kerberized mariadb
-  yum:  name=mariadb-galera-debuginfo,mariadb-galera-server,ipa-admintools
+  yum:  name=mariadb-galera-server
         state=latest
 
 - name: kinit
@@ -33,6 +29,12 @@
   notify:
     - restart mariadb
 
+- name: kdestroy
+  tags:
+    - mariadb
+  shell: kdestroy
+  changed_when: false
+
 - name: set keytab permissions
   tags:
     - mariadb
@@ -46,14 +48,14 @@
 - name: check for kerberos module
   tags:
     - mariadb
-  command: mysql keystone -u root  --execute="SHOW PLUGINS;"
+  command: mysql -u root --execute="SHOW PLUGINS;"
   register: mysql_modules
   changed_when: false
 
 - name: install kerberos module
   tags:
     - mariadb
-  command: mysql keystone -u root --execute="INSTALL PLUGIN kerberos soname 'kerberos';"
+  command: mysql -u root --execute="INSTALL PLUGIN kerberos soname 'kerberos';"
   when: "'kerberos' not in mysql_modules.stdout"
 
 - name: install server.cnf
@@ -64,8 +66,4 @@
   notify:
     - restart mariadb
 
-- name: kdestroy
-  tags:
-    - mariadb
-  shell: kdestroy
-  changed_when: false
+

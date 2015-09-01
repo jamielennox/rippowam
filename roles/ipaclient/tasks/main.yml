@@ -1,13 +1,19 @@
 ---
 - name: Install IPA Client packages
+  tags:
+    - ipaclient
   yum: name=ipa-client,ipa-admintools,python-memcached
        state=present
 
 - name: Setup resolv.conf
+  tags:
+    - ipaclient
   template: src=resolv.conf.j2
             dest=/etc/resolv.conf
 
 - name: Register IPA Client
+  tags:
+    - ipaclient
   command: >
     ipa-client-install -U
     --principal admin@{{ ipa_realm }}

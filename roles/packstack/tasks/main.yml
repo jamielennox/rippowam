@@ -5,6 +5,7 @@
   with_items:
     - jamielennox-rippowam-updates-epel-7.repo
     - jdennis-saml-ecp-epel-7.repo
+    - rharwood-mariadb-epel-7.repo
 
 - include: ipa-pre-packstack.yml
 - include: packstack.yml
@@ -13,11 +14,13 @@
 - include: keystone.yml
 - include: horizon.yml
 - include: ipa-post-packstack.yml
+- include: mysql.yml
 # - include: firewall.yml
 - meta: flush_handlers
 - include: keystone-environment.yml
 - include: keystone-sssd.yml
 - include: keystone-ipsilon.yml
+- include: mariadb-kerberos.yml
 #- include: barbican.yml
 #- include: test-encrypted-volumes.yml
 

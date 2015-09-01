@@ -21,7 +21,6 @@
     - common
     - ipaclient
     - packstack
-    - kerbmaria
   vars:
     hostname: "{{ ansible_fqdn }}"
     dns_search: "{{ ipa_domain }}"
