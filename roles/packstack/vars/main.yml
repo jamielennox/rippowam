@@ -31,3 +31,5 @@ service_authtoken:
   protocol: kerberos
   project_name: services
   project_domain_id: default
+
+mysql_principal: MySQL/{{ ansible_fqdn  }}@{{ ipa_realm }}
