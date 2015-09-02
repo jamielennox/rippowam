@@ -1,7 +1,6 @@
 - name: get mysql grants
   tags:
     - mariadb
-    - test
   command: mysql -u root --execute="select User from mysql.user where plugin='kerberos';"
   register: kerberos_users
   changed_when: false
@@ -9,7 +8,6 @@
 - name: add keystone kerberos grant
   tags:
     - mariadb
-    - test
   command: >
       mysql -u root
       --execute="DROP USER keystone_admin; CREATE USER keystone_admin IDENTIFIED VIA kerberos AS 'keystone/{{ hostname }}@{{ ipa_realm }}'; GRANT ALL PRIVILEGES ON keystone.* TO 'keystone_admin';"
@@ -20,7 +18,6 @@
 - name: add glance kerberos grant
   tags:
     - mariadb
-    - test
   command: >
       mysql -u root
       --execute="DROP USER glance; CREATE USER glance IDENTIFIED VIA kerberos AS 'glance/{{ hostname }}@{{ ipa_realm }}'; GRANT ALL PRIVILEGES ON glance.* TO 'glance';"
@@ -32,7 +29,6 @@
 - name: add cinder kerberos grant
   tags:
     - mariadb
-    - test
   command: >
       mysql -u root
       --execute="DROP USER cinder; CREATE USER cinder IDENTIFIED VIA kerberos AS 'cinder/{{ hostname }}@{{ ipa_realm }}'; GRANT ALL PRIVILEGES ON cinder.* TO 'cinder';"
@@ -45,7 +41,6 @@
 - name: add nova kerberos grant
   tags:
     - mariadb
-    - test
   command: >
       mysql -u root
       --execute="DROP USER nova; CREATE USER nova IDENTIFIED VIA kerberos AS 'nova/{{ hostname }}@{{ ipa_realm }}'; GRANT ALL PRIVILEGES ON nova.* TO 'nova';"
@@ -61,7 +56,6 @@
 - name: add neutron kerberos grant
   tags:
     - mariadb
-    - test
   command: >
       mysql -u root
       --execute="DROP USER neutron; CREATE USER neutron IDENTIFIED VIA kerberos AS 'neutron/{{ hostname }}@{{ ipa_realm }}'; GRANT ALL PRIVILEGES ON neutron.* TO 'neutron';"

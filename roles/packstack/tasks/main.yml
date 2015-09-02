@@ -11,6 +11,7 @@
 - include: packstack.yml
 - include: serviceauth.yml
 - include: haproxy.yml
+- include: haproxy-fixups.yml
 - include: infopipe.yml
 - include: keystone.yml
 - include: horizon.yml
