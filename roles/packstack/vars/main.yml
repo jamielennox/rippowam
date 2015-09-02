@@ -33,3 +33,9 @@ service_authtoken:
   project_domain_id: default
 
 mysql_principal: MySQL/{{ ansible_fqdn  }}@{{ ipa_realm }}
+
+glance_api_haproxy_port: 9293
+cinder_api_haproxy_port: 8777
+neutron_api_haproxy_port: 9697
+nova_api_haproxy_port: 8778
+nova_ec2_haproxy_port: 8779

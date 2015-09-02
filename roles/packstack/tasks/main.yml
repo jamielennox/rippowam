@@ -10,6 +10,7 @@
 - include: ipa-pre-packstack.yml
 - include: packstack.yml
 - include: serviceauth.yml
+- include: haproxy.yml
 - include: infopipe.yml
 - include: keystone.yml
 - include: horizon.yml

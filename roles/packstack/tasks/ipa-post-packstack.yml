@@ -43,6 +43,7 @@
     - restart cinder-api
     - restart glance-api
     - restart nova-api
+    - restart neutron-api
     - restart httpd
 
 - name: Change service user keytab ownership

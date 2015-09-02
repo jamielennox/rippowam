@@ -1,4 +1,4 @@
 SSLEngine on
-SSLCertificateFile /etc/httpd/conf/server.crt
-SSLCertificateKeyFile /etc/httpd/conf/server.key
+SSLCertificateFile {{ ssl_cert }}
+SSLCertificateKeyFile {{ ssl_key }}
 SSLCACertificateFile /etc/ipa/ca.crt

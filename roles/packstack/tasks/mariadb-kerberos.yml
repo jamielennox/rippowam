@@ -38,7 +38,7 @@
       --execute="DROP USER cinder; CREATE USER cinder IDENTIFIED VIA kerberos AS 'cinder/{{ hostname }}@{{ ipa_realm }}'; GRANT ALL PRIVILEGES ON cinder.* TO 'cinder';"
   when: "'cinder' not in kerberos_users.stdout"
   notify:
-    - restart cinder-all
+    - restart cinder-api
     - restart cinder-scheduler
     - restart cinder-volume
 

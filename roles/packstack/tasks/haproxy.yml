@@ -1,0 +1,103 @@
+---
+- name: install haproxy
+  yum: name=haproxy state=installed
+
+- name: setup glance haproxy
+  ini_file: section=DEFAULT
+            dest=/etc/glance/glance-api.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    bind_host: 127.0.0.1
+    bind_port: "{{ glance_api_haproxy_port }}"
+  notify:
+    - restart glance-api
+
+- name: update glance endpoints
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:9292\" where url like \"http://%:9292\";"
+  register: glancemysqlendpoint
+  changed_when: '"0 rows affected" not in glancemysqlendpoint.stdout'
+
+- name: setup cinder haproxy
+  ini_file: section=DEFAULT
+            dest=/etc/cinder/cinder.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    osapi_volume_listen: 127.0.0.1
+    osapi_volume_listen_port: "{{ cinder_api_haproxy_port }}"
+  notify:
+    - restart cinder-api
+
+- name: update cinder endpoints
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:8776/v1/%(tenant_id)s\" where url like \"http://%:8776/%\";"
+  register: cindermysqlendpoint
+  changed_when: '"0 rows affected" not in cindermysqlendpoint.stdout'
+
+- name: setup neutron haproxy
+  ini_file: section=DEFAULT
+            dest=/etc/neutron/neutron.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    bind_host: 127.0.0.1
+    bind_port: "{{ neutron_api_haproxy_port }}"
+  notify:
+    - restart neutron-api
+
+- name: update neutron endpoints
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:9696\" where url like \"http://%:9696\";"
+  register: neutronmysqlendpoint
+  changed_when: '"0 rows affected" not in neutronmysqlendpoint.stdout'
+
+- name: setup nova haproxy
+  ini_file: section=DEFAULT
+            dest=/etc/nova/nova.conf
+            option={{ item.key }}
+            value={{ item.value }}
+  with_dict:
+    osapi_compute_listen: 127.0.0.1
+    osapi_compute_listen_port: "{{ nova_api_haproxy_port }}"
+    ec2_listen: 127.0.0.1
+    ec2_listen_port: "{{ nova_ec2_haproxy_port }}"
+  notify:
+    - restart nova-api
+
+- name: update nova endpoints
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:8774/v2/%(tenant_id)s\" where url like \"http://%:8774/%\";"
+  register: novamysqlendpoint
+  changed_when: '"0 rows affected" not in novamysqlendpoint.stdout'
+
+- name: update ec2 endpoints
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:8773/services/Admin\" where url like \"http://%:8773/%\";"
+  register: ec2mysqlendpoint
+  changed_when: '"0 rows affected" not in ec2mysqlendpoint.stdout'
+
+- meta: flush_handlers
+
+- name: copy certs for haproxy
+  shell: cat {{ ssl_cert }} {{ ssl_key }} > {{ haproxy_certs }}
+  args:
+    creates: "{{ haproxy_certs }}"
+  notify:
+    - restart haproxy
+
+- name: haproxy cert permissions
+  file: name={{ haproxy_certs }}
+        mode=0600
+        owner=haproxy
+  notify:
+    - restart haproxy
+
+- name: install config file
+  template: src=haproxy.cfg
+            dest=/etc/haproxy/haproxy.cfg
+  notify:
+    - restart haproxy
+
+- name: start haproxy
+  service: name=haproxy
+           state=started
+           enabled=yes
+
+- meta: flush_handlers

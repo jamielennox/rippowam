@@ -17,8 +17,12 @@ neutron_db_password: neutron
 keystone_admin_password: password
 keystone_demo_password: password
 
-ssl_cert: /etc/httpd/conf/server.crt
-ssl_key: /etc/httpd/conf/server.key
+ssl_certs_dir: /etc/httpd/conf
+ssl_cert: "{{ ssl_certs_dir }}/server.crt"
+ssl_key: "{{ ssl_certs_dir }}/server.key"
+
+haproxy_certs: /etc/haproxy/cert.pem
+
 keytab: /etc/httpd/conf/openstack.keytab
 
 packstack_dir: /packstack
