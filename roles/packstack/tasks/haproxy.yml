@@ -64,7 +64,7 @@
     - restart nova-api
 
 - name: update nova endpoints
-  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:8774/v2/%(tenant_id)s\" where url like \"http://%:8774/%\";"
+  command: mysql -vv -u root keystone -e "update endpoint set url=\"https://{{ hostname }}:8774/v2/%(tenant_id)s\" where url like \"http://%:8774/v2/%\";"
   register: novamysqlendpoint
   changed_when: '"0 rows affected" not in novamysqlendpoint.stdout'
 
