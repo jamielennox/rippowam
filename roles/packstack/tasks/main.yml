@@ -35,3 +35,15 @@
     - demorc
     - kerb-accrc
     - fed-accrc
+
+
+
+- name: get local copies of rc files
+  sudo: no
+  local_action: template src={{ item }}.j2
+                      dest={{ deployment_dir  }}/{{ item }}
+  with_items:
+    - adminrc
+    - demorc
+    - kerb-accrc
+    - fed-accrc
