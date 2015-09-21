@@ -19,3 +19,12 @@
   file: path=/etc/httpd/conf.d/ssl.conf
         state=absent
   notify: restart httpd
+
+- name: Add ECP PAM file
+  copy: src=ipsilon_ecp
+        dest=/etc/pam.d/ipsilon_ecp
+
+- name: Add ECP HTTPd conf file
+  copy: src=ipsilon-idp-ecp.conf
+        dest=/etc/httpd/conf.d/ipsilon-idp-ecp.conf
+  notify: restart httpd
