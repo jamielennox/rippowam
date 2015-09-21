@@ -3,9 +3,10 @@
   copy: src={{ item }}
         dest=/etc/yum.repos.d/{{ item }}
   with_items:
-    - jamielennox-rippowam-updates-epel-7.repo
-    - jdennis-saml-ecp-epel-7.repo
     - rharwood-mariadb-epel-7.repo
+
+    # - jamielennox-rippowam-updates-epel-7.repo
+    # - jdennis-saml-ecp-epel-7.repo
 
 - include: ipa-pre-packstack.yml
 - include: packstack.yml
