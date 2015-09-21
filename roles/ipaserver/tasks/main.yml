@@ -82,4 +82,11 @@
     - 8443/tcp
 
 - name: Fetch krb5config
-  fetch: src=/etc/krb5.conf  dest={{ inventory_dir }}/krb5.conf  flat=yes
+  fetch: src=/etc/krb5.conf
+         dest={{ inventory_dir }}/krb5.conf
+         flat=yes
+
+- name: Fetch cacert
+  fetch: src=/etc/ipa/ca.crt
+         dest={{ inventory_dir }}/ca.crt
+         flat=yes
