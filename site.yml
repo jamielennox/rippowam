@@ -1,3 +1,14 @@
+- hosts: all
+  connection: paramiko
+  remote_user: "{{ cloud_user }}"
+  tasks:
+    - name: tty-less sudo
+      sudo: yes
+      lineinfile: dest=/etc/sudoers
+                  state=absent
+                  regexp='^Defaults(\s+)requiretty(\s*)$'
+                  validate='visudo -cf %s'
+
 - hosts: ipa
   sudo: yes
   remote_user: "{{ cloud_user }}"
