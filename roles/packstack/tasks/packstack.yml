@@ -5,12 +5,19 @@
         dest=/etc/yum.repos.d/RH7-RHOS-7.0.repo
 
 - name: Install packstack dependencies
-  yum: name=git,openstack-puppet-modules state=installed
+  yum: name=git state=installed
 
 #- name: Install packstack
-#  yum: name=openstack-packstack
+#  yum: name=openstack-packstack,openstack-puppet-modules
 #       state=present
 #       update_cache=yes
+
+# packstack from git currently requires newer modules than are packaged
+- name: Clone puppet modules
+  git: repo=https://github.com/redhat-openstack/openstack-puppet-modules.git
+       dest=/usr/share/openstack-puppet/modules
+       accept_hostkey=True
+       version=master-patches
 
 # Install packstack from git because of https://bugs.launchpad.net/packstack/+bug/1475170
 - name: Clone packstack
@@ -19,16 +26,16 @@
        accept_hostkey=True
   register: clonepackstack
 
+- name: Symlink packstack puppet modules
+  file: src="{{ packstack_dir }}/packstack/puppet/modules/packstack"
+        dest=/usr/share/openstack-puppet/modules/packstack
+        state=link
+
 - name: Install packstack
   shell: python setup.py develop
   args:
     chdir: "{{ packstack_dir }}"
   when: clonepackstack.changed
-
-- name: Symlink packstack puppet modules
-  file: src="{{ packstack_dir }}/packstack/puppet/modules/packstack"
-        dest=/usr/share/openstack-puppet/modules/packstack
-        state=link
 
 - name: Copy answer file
   template: src=answers.txt.j2
@@ -38,4 +45,3 @@
 - name: Run packstack
   command: "{{ packstack_dir }}/bin/packstack --answer-file /answers.txt"
   when: answers.changed
-
