@@ -1,0 +1,17 @@
+[satellite]
+name=Satellite
+baseurl=http://download.devel.redhat.com/released/RHEL-7-Satellite/6.0.4/Satellite/$basearch/os/
+enabled=1
+gpgcheck=0
+
+[scl]
+name=RHSCL
+baseurl=http://download.devel.redhat.com/released/RHSCL/2.0/RHEL-7/Server/$basearch/os/
+enabled=1
+gpgcheck=0
+
+[rhel-satellite-server-optional]
+name=RHEL Satellite 7.2 Server Optional
+baseurl=http://download.devel.redhat.com/nightly/latest-RHEL-7/compose/Server-optional/$basearch/os/
+gpgcheck=0
+enabled=1

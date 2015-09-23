@@ -1,0 +1,108 @@
+---
+- name: Install repos
+  tags:
+    - common
+  copy: src="{{ item }}"
+        dest=/etc/yum.repos.d/{{ item }}
+  with_items:
+    - satellite.repo
+
+- name: Install deps
+  yum: name=httpd,ipsilon-client
+       state=installed
+
+- name: Start certmonger
+  service: name=certmonger
+           enabled=true
+           state=started
+
+- name: kinit
+  shell: klist &>/dev/null || echo {{ ipa_admin_password }} | kinit admin@{{ ipa_realm }}
+  changed_when: false
+
+- name: Add HTTP/satellite service
+  ipaservice: principal=HTTP/{{ hostname }}@{{ ipa_realm }}
+
+- name: Get HTTP certificate
+  command: >
+    ipa-getcert request -w
+    -f {{ ssl_cert }}
+    -k {{ ssl_key }}
+    -D "{{ hostname }}"
+    -K HTTP/{{ hostname }}
+  args:
+    creates: "{{ ssl_cert }}"
+  notify:
+    - restart httpd
+
+- name: kdestroy
+  command: kdestroy
+  changed_when: false
+
+- name: Install katello rpms
+  yum: name=katello state=installed
+
+- name: Install katello
+  command: >
+    katello-installer
+    --foreman-ipa-authentication
+    --foreman-ssl
+    --foreman-server-ssl-ca=/etc/ipa/ca.crt
+    --foreman-server-ssl-cert={{ ssl_cert }}
+    --foreman-server-ssl-key={{ ssl_key }}
+    --foreman-admin-password=password
+  notify:
+    - restart httpd
+  args:
+    creates: /etc/katello/secret_token
+
+- name: remove katello auth
+  file: state=absent
+        name=/etc/httpd/conf.d/05-foreman-ssl.d/{{ item }}
+  with_items:
+    - auth_kerb.conf
+    - lookup_identity.conf
+  notify:
+    - restart httpd
+
+- name: SAML2 config dirs
+  tags:
+    - test
+  file: state=directory
+        path={{ saml_conf_dir }}
+        owner=apache
+        mode=0750
+
+- name: Install Ipsilon
+  tags:
+    - test
+  command: >
+    ipsilon-client-install
+    --saml
+    --saml-base /
+    --saml-sp /saml2
+    --saml-sp-name satellite
+    --saml-idp-url https://ipa.{{ ipa_domain }}/idp
+    --saml-no-httpd
+    --admin-user admin
+  args:
+    creates: "{{ saml_conf_dir }}/metadata.xml"
+    chdir: "{{ saml_conf_dir }}"
+  environment:
+    IPSILON_ADMIN_PASSWORD: "{{ ipa_admin_user_password }}"
+
+- name: Download IDP metadata
+  tags:
+    - test
+  get_url: url=https://ipa.{{ ipa_domain }}/idp/saml2/metadata
+           dest={{ saml_conf_dir }}/idp-metadata.xml
+  notify:
+    - restart httpd
+
+- name: SAML auth config
+  tags:
+    - test
+  template: src=ipsilon.conf.j2
+            dest=/etc/httpd/conf.d/05-foreman-ssl.d/ipsilon.conf
+  notify:
+    - restart httpd

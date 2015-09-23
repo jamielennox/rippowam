@@ -1,0 +1,6 @@
+---
+ssl_certs_dir: /etc/httpd/conf
+ssl_cert: "{{ ssl_certs_dir }}/server.crt"
+ssl_key: "{{ ssl_certs_dir }}/server.key"
+
+saml_conf_dir: /etc/httpd/saml2

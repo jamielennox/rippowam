@@ -1,0 +1,32 @@
+LoadModule auth_mellon_module modules/mod_auth_mellon.so
+
+<Location />
+  MellonEnable "info"
+  MellonSPPrivateKeyFile {{ saml_conf_dir }}/certificate.key
+  MellonSPCertFile {{ saml_conf_dir }}/certificate.pem
+  MellonSPMetadataFile {{ saml_conf_dir }}/metadata.xml
+  MellonIdPMetadataFile {{ saml_conf_dir }}/idp-metadata.xml
+  MellonEndpointPath /saml2
+  MellonIdP "IDP"
+  MellonEnvVarsIndexStart 1
+  MellonEnvVarsSetCount On
+  MellonSetEnvNoPrefix "REMOTE_USER_EMAIL" email
+  MellonSetEnvNoPrefix "REMOTE_USER_FIRSTNAME" givenname
+  MellonSetEnvNoPrefix "REMOTE_USER_LASTNAME" surname
+  MellonSetEnvNoPrefix "REMOTE_USER_GROUP" groups
+</Location>
+
+<Location /saml2>
+  SSLRequireSSL
+  AuthType "Mellon"
+  MellonEnable "auth"
+  ErrorDocument 401 '<html><meta http-equiv="refresh" content="0; URL=/users/login"><body>SAML authentication did not pass.</body></html>'
+  # The following is needed as a workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1020087
+  ErrorDocument 500 '<html><meta http-equiv="refresh" content="0; URL=/users/login"><body>SAML authentication did not pass.</body></html>'
+</Location>
+
+<Location /users/login>
+  SSLRequireSSL
+  AuthType "Mellon"
+  MellonEnable "auth"
+</Location>
