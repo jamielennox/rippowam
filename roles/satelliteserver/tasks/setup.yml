@@ -1,0 +1,127 @@
+---
+- name: find organizations
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    organization list
+    --search {{ organization }}
+  changed_when: False
+  register: find_org
+
+- debug: var=find_org
+  tags:
+    - test
+
+- name: create organization
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    organization create
+    --name {{ organization }}
+    --label {{ organization }}
+    --description "Default Rippowam Organization"
+  when: '"{{ organization }}" not in find_org.stdout'
+
+- name: find environment lifecycle
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    lifecycle-environment list
+    --organization {{ organization }}
+  changed_when: False
+  register: find_env
+
+- name: create environment lifecycle
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    lifecycle-environment create
+    --name {{ dev_lifecycle }}
+    --organization {{ organization }}
+    --description "Development Environment"
+    --prior Library
+  when: '"{{ dev_lifecycle }}" not in find_env.stdout'
+
+- name: find product
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    product list
+    --organization {{ organization }}
+    --search {{ product }}
+  changed_when: False
+  register: find_prod
+
+- name: create product
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    product create
+    --name {{ product }}
+    --label {{ product }}
+    --organization {{ organization }}
+    --description "Rippowam Product"
+  when: '"{{ product }}" not in find_prod.stdout'
+
+- name: find repositories
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    repository list
+    --organization {{ organization }}
+    --product {{ product }}
+  changed_when: False
+  register: find_repo
+
+- name: create nightly repository
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    repository create
+    --organization {{ organization }}
+    --product {{ product }}
+    --name rhel-nightly
+    --content-type yum
+    --publish-via-http true
+    --url http://download.devel.redhat.com/composes/nightly/latest-RHEL-7/compose/Server/x86_64/os/
+  when: '"rhel-nightly" not in find_repo.stdout'
+
+- name: create rippowam repository
+  tags:
+    - test
+  command: >
+    hammer
+    -u admin
+    -p {{ ipa_server_password }}
+    repository create
+    --organization {{ organization }}
+    --product {{ product }}
+    --name rippowam-updates
+    --content-type yum
+    --publish-via-http true
+    --url https://copr-be.cloud.fedoraproject.org/results/jamielennox/rippowam-updates/epel-7-$basearch/
+  when: '"rippowam-updates" not in find_repo.stdout'

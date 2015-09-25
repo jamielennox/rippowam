@@ -23,6 +23,22 @@
     ipa_admin_password: "{{ ipa_admin_user_password }}"
     ipa_dns_forwarder:  "{{ ipa_forwarder }}"
 
+- hosts: satellite
+  sudo: yes
+  remote_user: "{{ cloud_user }}"
+  tags:
+    - satellite
+  roles:
+    - common
+    - ipaclient
+    - satelliteserver
+  vars:
+    hostname: "{{ ansible_fqdn }}"
+    dns_search: "{{ ipa_domain }}"
+    dns_nameservers:
+      - "{{ nameserver }}"
+    ipa_admin_password: "{{ipa_admin_user_password }}"
+
 - hosts: openstack
   sudo: yes
   remote_user: "{{ cloud_user }}"
@@ -34,22 +50,6 @@
     - packstack
   vars:
     hostname: "{{ ansible_fqdn }}"
-    dns_search: "{{ ipa_domain }}"
-    dns_nameservers:
-      - "{{ nameserver }}"
-    ipa_admin_password: "{{ipa_admin_user_password }}"
-
-- hosts: satellite
-  sudo: yes
-  remote_user: "{{ cloud_user }}"
-  tags:
-    - satellite
-  roles:
-    - common
-    - ipaclient
-    - satelliteserver
-  vars:
-    hostname: satellite.{{ ipa_domain }}
     dns_search: "{{ ipa_domain }}"
     dns_nameservers:
       - "{{ nameserver }}"
