@@ -1,0 +1,92 @@
+#!/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+DOCUMENTATION = '''
+---
+module: ipsilonprovider
+short_description: Register a service provider with ipsilon
+author: Jamie Lennox
+notes:
+  - there is no rest API to either delete or modify an existing service
+    provider so if a provider of the same name exists it is presumed to be ok.
+requirements:
+  - requests
+'''
+
+import requests
+from six.moves.urllib.parse import urlencode
+
+from ansible.module_utils.basic import *  # noqa
+
+module = AnsibleModule(
+    argument_spec=dict(
+        username=dict(required=True),
+        password=dict(required=True),
+        name=dict(required=True),
+        metadata=dict(required=True),
+        url=dict(required=True),
+        link=dict(required=True),
+    )
+)
+
+
+def main():
+    session = requests.Session()
+
+    try:
+        with open(module.params['metadata'], 'r') as f:
+            metadata = f.read()
+    except IOError as e:
+        module.fail_json(msg='Failed to read the metadata file: %s' % e)
+
+    url = module.params['url'].rstrip('/')
+    auth_data = {'login_name': module.params['username'],
+                 'login_password': module.params['password']}
+
+    resp = session.post('%s/login/form' % url, data=auth_data)
+
+    if not resp.ok:
+        module.fail_json(msg='Failed to authenticate with ipsilon server')
+
+    sp_url = '%s/rest/providers/saml2/SPS/%s' % (url, module.params['name'])
+
+    resp = session.get(sp_url, headers={'Accept': 'application/json'})
+
+    if resp.ok:
+        # I can check the data but i can't change it so i may as well not
+        module.exit_json(changed=False)
+
+        # try:
+        #     existing_metadata = resp.json().get('result', [])[0]['metadata']
+        # except (KeyError, IndexError):
+        #     module.fail_json(msg='Unexpected existing metadata format')
+
+        # if existing_metadata == metadata:
+        #     module.exit_json(changed=False)
+
+    sp_headers = {'Content-type': 'application/x-www-form-urlencoded',
+                  'Referer': sp_url}
+    sp_data = {'metadata': metadata,
+               'splink': module.params['link']}
+
+    resp = session.post(sp_url, headers=sp_headers, data=urlencode(sp_data))
+
+    if resp.ok:
+        module.exit_json(changed=True)
+    else:
+        module.fail_json(msg="Couldn't create new sp: %s" % resp.text)
+
+
+if __name__ == '__main__':
+    main()

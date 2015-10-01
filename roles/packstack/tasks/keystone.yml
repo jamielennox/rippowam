@@ -55,41 +55,58 @@
     - ipsilon
   file: state=directory
         path=/etc/httpd/saml2/{{ item }}
-        owner=apache
-        mode=0750
   with_items:
     - ecp
     - websso
 
-- name: Install Ipsilon
+- name: Install Ipsilon for WebSSO
   tags:
     - ipsilon
   shell: >
     echo {{ ipa_admin_user_password }} | ipsilon-client-install
     --saml
     --saml-no-httpd
-    --saml-base {{ item.value }}
-    --saml-sp {{ item.value }}
+    --saml-base /v3/auth/OS-FEDERATION/websso/saml2
+    --saml-sp /v3/auth/OS-FEDERATION/websso/saml2
     --saml-idp-url https://ipa.{{ ipa_domain }}/idp
-    --saml-sp-logout {{ item.value }}/logout
-    --saml-sp-post {{ item.value }}/postResponse
-    --saml-sp-name openstack{{ item.key }}
-    --saml-auth {{ item.value }}
+    --saml-sp-logout /v3/auth/OS-FEDERATION/websso/saml2/logout
+    --saml-sp-post /v3/auth/OS-FEDERATION/websso/saml2/postResponse
+    --saml-sp-name openstackwebsso
+    --saml-auth /v3/auth/OS-FEDERATION/websso/saml2
     --admin-user admin
     --admin-password -
     --port 5000
   args:
-    creates: /etc/httpd/saml2/{{ item.key }}/metadata.xml
-    chdir: /etc/httpd/saml2/{{ item.key }}/
+    creates: /etc/httpd/saml2/websso/metadata.xml
+    chdir: /etc/httpd/saml2/websso/
   environment:
     # NOTE(jamielennox): This is ignored for now but should be used in place of
     # the echo above as soon as >1.0 comes out. That means can switch back to command instead of shell.
     IPSILON_ADMIN_PASSWORD: "{{ ipa_admin_user_password }}"
   notify:
     - restart httpd
-  with_dict:
-    ecp: /v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth
-    websso: /v3/auth/OS-FEDERATION/websso/saml2
+
+- name: Create metadata file
+  tags:
+    - ipsilon
+  sudo: true
+  command: >
+    /usr/libexec/mod_auth_mellon/mellon_create_metadata.sh
+    openstackecp
+    "https://openstack.{{ ipa_domain }}:5000/v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth"
+  args:
+    creates: /etc/httpd/saml2/ecp/openstackecp.key
+    chdir: /etc/httpd/saml2/ecp
+
+- name: Install ipsilon for ECP
+  tags:
+    - ipsilon
+  ipsilonprovider: username=admin
+                   password={{ ipa_admin_user_password }}
+                   name=openstackecp
+                   metadata=/etc/httpd/saml2/ecp/openstackecp.xml
+                   url=https://ipa.{{ ipa_domain }}/idp
+                   link=https://openstack.{{ ipa_domain }}:5000/v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth
 
 - name: Download IDP metadata
   tags:
@@ -98,6 +115,18 @@
            dest=/etc/httpd/saml2/idp-metadata.xml
   notify:
     - restart httpd
+
+- name: SAML2 config dirs
+  tags:
+    - ipsilon
+  file: state=directory
+        path=/etc/httpd/saml2/
+        owner=apache
+        mode=0750
+        recurse=yes
+  with_items:
+    - ecp
+    - websso
 
 - name: Kerberos as Login mechanism
   ini_file: dest=/etc/keystone/keystone.conf
