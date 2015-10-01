@@ -5,9 +5,6 @@
   with_items:
     - rharwood-mariadb-epel-7.repo
 
-    # - jamielennox-rippowam-updates-epel-7.repo
-    # - jdennis-saml-ecp-epel-7.repo
-
 - include: ipa-pre-packstack.yml
 - include: packstack.yml
 - include: serviceauth.yml
