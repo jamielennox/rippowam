@@ -92,8 +92,8 @@
         mode=0750
 
 - name: Install Ipsilon
-  command: >
-    ipsilon-client-install
+  shell: >
+    echo {{ ipa_admin_user_password }} | ipsilon-client-install
     --saml
     --saml-base /
     --saml-sp /saml2
@@ -101,6 +101,7 @@
     --saml-idp-url https://ipa.{{ ipa_domain }}/idp
     --saml-no-httpd
     --admin-user admin
+    --admin-password -
   args:
     creates: "{{ saml_conf_dir }}/metadata.xml"
     chdir: "{{ saml_conf_dir }}"
