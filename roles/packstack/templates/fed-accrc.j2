@@ -10,9 +10,12 @@ export OS_IDENTITY_API_VERSION=3
 if [ -z "$OS_USERNAME" ]; then
     echo -n "IPA Username: "
     read -r OS_USERNAME
+    export OS_USERNAME
 fi
 
 if [ -z "$OS_PASSWORD" ]; then
     echo -n "IPA Password: "
     read -sr OS_PASSWORD
+    export OS_PASSWORD
+    echo
 fi
