@@ -13,20 +13,21 @@
             }
         ]
     },
-     {
-         "local": [
-             {
-                 "groups": "{0}",
-                 "domain": {
-                     "name": "Default"
-                 }
-             }
-         ],
-         "remote": [
-             {
-                 "type": "MELLON_groups",
-                 "blacklist": []
-             }
-         ]
-     }
+
+    {
+        "local": [
+            {
+                "groups": "{0}",
+                "domain": {
+                    "name": "Default"
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "REMOTE_USER_GROUPS",
+                "whitelist": ["ipausers"]
+            }
+        ]
+    }
 ]
