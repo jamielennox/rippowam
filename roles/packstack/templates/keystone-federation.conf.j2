@@ -32,9 +32,9 @@
 
 <Location /v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth>
     MellonEnable "auth"
-    MellonSPPrivateKeyFile "/etc/httpd/saml2/ecp/openstackecp.key"
-    MellonSPCertFile "/etc/httpd/saml2/ecp/openstackecp.cert"
-    MellonSPMetadataFile "/etc/httpd/saml2/ecp/openstackecp.xml"
+    MellonSPPrivateKeyFile "/etc/httpd/saml2/ecp/metadata.key"
+    MellonSPCertFile "/etc/httpd/saml2/ecp/metadata.cert"
+    MellonSPMetadataFile "/etc/httpd/saml2/ecp/metadata.xml"
     MellonIdPMetadataFile "/etc/httpd/saml2/idp-metadata.xml"
     MellonEndpointPath /v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth
     MellonVariable "saml-sesion-cookie"

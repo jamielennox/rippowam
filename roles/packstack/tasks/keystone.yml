@@ -121,14 +121,14 @@
   notify:
     - restart httpd
 
-- name: Install ipsilon for ECP
+- name: Register ecp endpoint with ipsilon
   tags:
     - ipsilon
     - test1
   ipsilonprovider: username=admin
                    password={{ ipa_admin_user_password }}
                    name=openstackecp
-                   metadata=/etc/httpd/saml2/ecp/openstackecp.xml
+                   metadata=/etc/httpd/saml2/ecp/metadata.xml
                    url=https://ipa.{{ ipa_domain }}/idp
                    link=https://openstack.{{ ipa_domain }}:5000/v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth
 
