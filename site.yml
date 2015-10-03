@@ -21,7 +21,6 @@
   vars:
     hostname: "{{ ansible_fqdn }}"
     ipa_admin_password: "{{ ipa_admin_user_password }}"
-    ipa_dns_forwarder:  "{{ ipa_forwarder }}"
 
 - hosts: satellite
   sudo: yes
@@ -35,8 +34,6 @@
   vars:
     hostname: "{{ ansible_fqdn }}"
     dns_search: "{{ ipa_domain }}"
-    dns_nameservers:
-      - "{{ nameserver }}"
     ipa_admin_password: "{{ipa_admin_user_password }}"
 
 - hosts: openstack
@@ -51,6 +48,4 @@
   vars:
     hostname: "{{ ansible_fqdn }}"
     dns_search: "{{ ipa_domain }}"
-    dns_nameservers:
-      - "{{ nameserver }}"
     ipa_admin_password: "{{ipa_admin_user_password }}"

@@ -2,5 +2,4 @@
 ipa_admin_password: password
 ipa_dm_password: password
 
-ipa_dns_forwarder: 8.8.8.8
 ipa_realm: FEDTEST.ORG

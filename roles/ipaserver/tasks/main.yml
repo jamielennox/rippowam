@@ -18,6 +18,11 @@
     - ipa-server-dns
   when: ansible_distribution == "RedHat"
 
+- name: Get default DNS
+  resolver:
+  register: dns_forwarder
+  changed_when: false
+
 - name: install ipa
   tags:
     - ipaserver
@@ -29,7 +34,7 @@
     --admin-password {{ ipa_admin_password }}
     --setup-dns
     --ip-address {{ ansible_default_ipv4.address }}
-    --forwarder {{ ipa_dns_forwarder }}
+    --forwarder {{ dns_forwarder.nameservers[0] }}
   args:
     creates: /etc/ipa/ca.crt
 
