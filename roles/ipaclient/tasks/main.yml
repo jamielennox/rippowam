@@ -11,6 +11,24 @@
   template: src=resolv.conf.j2
             dest=/etc/resolv.conf
 
+- name: Setup network
+  tags:
+    - ipaclient
+  register: network_eth0
+  template: src=ifcfg-eth0.j2
+            dest=/etc/sysconfig/network-scripts/ifcfg-eth0
+
+# Restarting network is super unreliable when done over ansible, it tends to
+# hang or fail. In the case of network manager you can:
+# nmcli con load /etc/sysconfig/network-scripts/ifcfg-eth0
+# but NM isn't used in the packstack case. As our problem is currently only DNS
+# we can skip the restart, add the static DNS to ifcfg and resolv, eventually
+# NM or something else will overwrite resolv but it won't matter.
+# - name: restart network
+#   service: name=network
+#            state=restarted
+#   when: network_eth0.changed
+#
 - name: Register IPA Client
   tags:
     - ipaclient

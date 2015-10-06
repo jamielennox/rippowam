@@ -1,6 +1,4 @@
 ## handled by ansible
 search {{ dns_search }}
 
-{% for n in hostvars[groups['ipa'][0]]['ansible_all_ipv4_addresses'] %}
-nameserver {{ n }}
-{% endfor %}
+nameserver {{ hostvars[groups['ipa'][0]]['ansible_default_ipv4']['address'] }}
