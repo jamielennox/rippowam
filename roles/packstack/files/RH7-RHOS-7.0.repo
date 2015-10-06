@@ -1,17 +1,18 @@
 [RH7-RHOS-7.0]
 name=RH7-RHOS-7.0
-baseurl=http://download.eng.bos.redhat.com/rel-eng/OpenStack/7.0-RHEL-7/GA/RH7-RHOS-7.0/$basearch/os
+baseurl=http://download.lab.bos.redhat.com/rel-eng/OpenStack/7.0-RHEL-7/latest/RH7-RHOS-7.0/$basearch/os
 gpgcheck=0
 enabled=1
 
 [RH7-RHOS-7.0-debug]
 name=RH7-RHOS-7.0 Debuginfo
-baseurl=http://download.eng.bos.redhat.com/rel-eng/OpenStack/7.0-RHEL-7/GA/RH7-RHOS-7.0/$basearch/debuginfo/
+baseurl=http://download.lab.bos.redhat.com/rel-eng/OpenStack/7.0-RHEL-7/latest/RH7-RHOS-7.0/$basearch/debuginfo
 gpgcheck=0
 enabled=0
 
 [RH7-RHOS-7.0-sources]
 name=RH7-RHOS-7.0 Sources
-baseurl=http://download.eng.bos.redhat.com/rel-eng/OpenStack/7.0-RHEL-7/GA/RH7-RHOS-7.0/source/
+baseurl=http://download.lab.bos.redhat.com/rel-eng/OpenStack/7.0-RHEL-7/latest/RH7-RHOS-7.0/source
 gpgcheck=0
 enabled=0
+
