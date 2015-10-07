@@ -3,7 +3,8 @@
         "local": [
             {
                 "user": {
-                    "name": "{0}"
+                    "name": "{0}",
+                    "domain": {"name": "Default"}
                 }
             }
         ],
@@ -25,8 +26,8 @@
         ],
         "remote": [
             {
-                "type": "REMOTE_USER_GROUPS",
-                "whitelist": ["ipausers"]
+                "type": "MELLON_groups",
+                "whitelist": ["ipausers", "admins"]
             }
         ]
     }
