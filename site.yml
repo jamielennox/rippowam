@@ -10,6 +10,11 @@
                   validate='visudo -cf %s'
 
 - hosts: ipa
+  remote_user: "{{ cloud_user }}"
+  tags: all
+  tasks: []
+
+- hosts: ipa
   sudo: yes
   remote_user: "{{ cloud_user }}"
   tags:
