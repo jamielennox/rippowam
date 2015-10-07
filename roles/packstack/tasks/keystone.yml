@@ -147,7 +147,7 @@
   file: state=directory
         path=/etc/httpd/saml2/
         owner=apache
-        mode=0640
+        mode=u=rwX,g=rX,o=
         recurse=yes
   with_items:
     - ecp
