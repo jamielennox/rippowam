@@ -2,7 +2,7 @@ from saml2.entity_category.edugain import COC
 from saml2 import BINDING_HTTP_REDIRECT
 from saml2 import BINDING_PAOS
 from saml2.saml import NAME_FORMAT_BASIC
-from saml2.saml import NAME_FORMAT_UNSPECIFIED1
+from saml2.saml import NAMEID_FORMAT_UNSPECIFIED1
 
 BASE = 'https://openstack.jamielennox.oslab.test:5000'
 PATH = '/v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth'
@@ -17,7 +17,7 @@ CONFIG = {
         "sp": {
             "authn_requests_signed": True,
             "logout_requests_signed": True,
-            "name_id_format": NAME_FORMAT_UNSPECIFIED1,
+            "name_id_format": NAMEID_FORMAT_UNSPECIFIED1,
             "endpoints": {
                 "assertion_consumer_service": [
                     ("%s/paosResponse" % URL, BINDING_PAOS)
