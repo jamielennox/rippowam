@@ -4,7 +4,7 @@ from saml2 import BINDING_PAOS
 from saml2.saml import NAME_FORMAT_BASIC
 from saml2.saml import NAMEID_FORMAT_UNSPECIFIED1
 
-BASE = 'https://openstack.jamielennox.oslab.test:5000'
+BASE = 'https://openstack.{{ ipa_domain }}:5000'
 PATH = '/v3/OS-FEDERATION/identity_providers/ipsilon/protocols/saml2/auth'
 URL = BASE + PATH
 
